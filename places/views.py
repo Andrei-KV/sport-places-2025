@@ -71,3 +71,9 @@ def edit_place(request, place_id):
     context = {'form': form, 'place': place}
     return render(request, 'places/edit_place.html', context)
 
+
+def place_detail(request, place_id):
+    place = get_object_or_404(Place, pk=place_id)
+    context = {'place': place}
+    return render(request, 'places/place_detail.html', context)
+
