@@ -5,6 +5,20 @@
     <title>Каталог спортплощадок</title>
 </head>
 <body>
+    <header>
+        {% if user.is_authenticated %}
+            <p>Привет, {{ user.username }}!</p>
+            <p>
+                <form action="{% url 'logout' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit">Выйти</button>
+                </form>
+            </p>
+        {% else %}
+            <p><a href="{% url 'register' %}">Зарегистрироваться</a> | <a href="{% url 'login' %}">Войти</a></p>
+        {% endif %}
+        <hr>
+    </header>
     <h1>{{ title }}</h1>
 
     <h2>Доступные площадки:</h2>

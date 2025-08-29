@@ -16,6 +16,7 @@ def register(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             form.save()
+            # После регистрации перенаправляет на страницу входа
             return redirect('login')  # Перенаправляем на страницу входа
     else:
         form = UserCreationForm()
