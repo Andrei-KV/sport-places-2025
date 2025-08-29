@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .models import Place, PendingPlace
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
-from .forms import PlaceForm
+from .forms import PlaceForm, CommentForm, RatingForm
 from django.http import HttpResponse
 
 

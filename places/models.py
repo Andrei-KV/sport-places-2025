@@ -36,3 +36,24 @@ class PendingPlace(models.Model):
 
     def __str__(self):
         return f"{self.action.capitalize()} - {self.name}"
+
+
+class Comment(models.Model):
+    place = models.ForeignKey(Place, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Комментарий от {self.user.username} на {self.place.name}'
+
+class Rating(models.Model):
+    place = models.ForeignKey(Place, on_delete=models.CASCADE, related_name='ratings')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    value = models.PositiveSmallIntegerField(choices=[(i, str(i)) for i in range(1, 6)])
+
+    class Meta:
+        unique_together = ('place', 'user') # Один пользователь может оценить одну площадку только один раз
+
+    def __str__(self):
+        return f'Оценка {self.value} от {self.user.username} для {self.place.name}'

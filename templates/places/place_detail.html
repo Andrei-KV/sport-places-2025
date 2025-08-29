@@ -1,4 +1,45 @@
-<h1>{{ place.name }}</h1>
-<p>{{ place.description }}</p>
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ place.name }}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <h1>{{ place.name }}</h1>
+    <p>{{ place.description }}</p>
 
-<a href="{% url 'home' %}">Вернуться в каталог</a>
+    <h2>Рейтинг: {{ average_rating|floatformat:1 }} / 5</h2>
+
+    <h3>Комментарии:</h3>
+    {% for comment in comments %}
+        <div>
+            <strong>{{ comment.user.username }}</strong> ({{ comment.created_at|date:"d.m.Y H:i" }}):
+            <p>{{ comment.text }}</p>
+        </div>
+        <hr>
+    {% empty %}
+        <p>Комментариев пока нет. Будьте первыми!</p>
+    {% endfor %}
+
+    <hr>
+    
+    <h2>Оставить комментарий</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ comment_form.as_p }}
+        <button type="submit" name="comment_submit">Отправить</button>
+    </form>
+
+    <h2>Оценить площадку</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ rating_form.as_p }}
+        <button type="submit" name="rating_submit">Оценить</button>
+    </form>
+
+    <br>
+    <a href="{% url 'home' %}">Вернуться в каталог</a>
+</body>
+</html>
