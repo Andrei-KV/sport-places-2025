@@ -8,6 +8,7 @@
     <header>
         {% if user.is_authenticated %}
             <p>Привет, {{ user.username }}!</p>
+            <p><a href="{% url 'add_place' %}">Добавить площадку</a></p>
             <p>
                 <form action="{% url 'logout' %}" method="post">
                     {% csrf_token %}
@@ -27,6 +28,9 @@
         <div>
             <h3>{{ place.name }}</h3>
             <p>{{ place.description }}</p>
+            {% if user.is_authenticated %}
+                <a href="{% url 'edit_place' place.id %}">Изменить</a>
+            {% endif %}
         </div>
         <hr>
     {% endfor %}
