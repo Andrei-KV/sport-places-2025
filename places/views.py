@@ -1,6 +1,6 @@
 from django.db import models
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Place, PendingPlace
+from .models import Place, PendingPlace, Comment, Rating, Photo
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from .forms import PlaceForm, CommentForm, RatingForm
@@ -33,7 +33,7 @@ def register(request):
 @login_required
 def add_place(request):
     if request.method == 'POST':
-        form = PlaceForm(request.POST)
+        form = PlaceForm(request.POST, request.FILES)
         if form.is_valid():
             # Create a pending submission
             # by adding commit=False, we tell Django to create the object but not save it to the database yet
@@ -41,6 +41,10 @@ def add_place(request):
             pending_submission.user = request.user
             pending_submission.action = 'add'
             pending_submission.save()
+
+            # Сохраняем загруженные фото
+            for f in request.FILES.getlist('photos'):
+                Photo.objects.create(pending_place=pending_submission, image=f)
 
 # pending_submission.save(): Now that we've made all the necessary changes to the object in memory, 
 # we call .save() without any parameters. This finalizes the process 
@@ -58,13 +62,20 @@ def edit_place(request, place_id):
     place = get_object_or_404(Place, pk=place_id)
 
     if request.method == 'POST':
-        form = PlaceForm(request.POST)
+        form = PlaceForm(request.POST, request.FILES)
         if form.is_valid():
             pending_submission = form.save(commit=False)
             pending_submission.user = request.user
             pending_submission.action = 'edit'
             pending_submission.original_place = place
             pending_submission.save()
+
+            # Сохраняем загруженные фото для заявки на редактирование
+            for f in request.FILES.getlist('photos'):
+                Photo.objects.create(pending_place=pending_submission, image=f)
+# Будем сохранять фотографии, связанные с заявками на модерацию (PendingPlace), 
+# а не с одобренными площадками (Place). 
+# Это правильно, так как администратор должен видеть фотографии, которые он одобряет.                
             return redirect('home')
     else:
         form = PlaceForm(initial={'name': place.name, 'description': place.description})

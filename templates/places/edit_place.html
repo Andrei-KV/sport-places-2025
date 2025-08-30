@@ -1,9 +1,10 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 <h1>Редактировать площадку "{{ place.name }}"</h1>
-<form method="post">
+<form method="post" enctype="multipart/form-data"> 
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Отправить на модерацию</button>
+    <button type="submit">Добавить</button>
+</form>
 </form>
 <a href="{% url 'home' %}">Отмена</a>

@@ -63,7 +63,7 @@ class Rating(models.Model):
 
 
 class Photo(models.Model):
-    place = models.ForeignKey(Place, on_delete=models.CASCADE, related_name='photos')
+    place = models.ForeignKey(PendingPlace, on_delete=models.CASCADE, related_name='photos')
     image = models.ImageField(upload_to='place_photos/')
 
     def __str__(self):
