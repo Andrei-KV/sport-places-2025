@@ -63,11 +63,10 @@ class Rating(models.Model):
 
 
 class Photo(models.Model):
-    place = models.ForeignKey(PendingPlace, on_delete=models.CASCADE, related_name='photos')
+    pending_place = models.ForeignKey(PendingPlace, on_delete=models.CASCADE, related_name='photos', null=True, blank=True)
     image = models.ImageField(upload_to='place_photos/')
-
     def __str__(self):
-        return f'Фото для {self.place.name}'
+        return f'Фото для {self.pending_place.name}'
 # place: A ForeignKey that links each photo to its corresponding Place object. 
 # related_name='photos' will allow us to easily access all photos 
 # for a place with place.photos.all().

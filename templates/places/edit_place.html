@@ -1,10 +1,23 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-<h1>Редактировать площадку "{{ place.name }}"</h1>
-<form method="post" enctype="multipart/form-data"> 
+<h1>Добавить новую площадку</h1>
+<form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Добавить</button>
+    
+    <div>
+        <label for="id_name">Название площадки:</label>
+        <input type="text" name="name" id="id_name" value="{{ form.name.value }}" required disabled>
+    </div>
+    
+    <div>
+        <label for="id_description">Описание:</label>
+        <textarea name="description" id="id_description" required>{{ form.description.value }}</textarea>
+    </div>
+    
+    <div>
+        <label for="id_photos">Фотографии:</label>
+        <input type="file" name="photos" id="id_photos" multiple>
+    </div>
+
+    <button type="submit">Отправить на модерацию</button>
 </form>
-</form>
-<a href="{% url 'home' %}">Отмена</a>

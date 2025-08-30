@@ -33,7 +33,7 @@ def register(request):
 @login_required
 def add_place(request):
     if request.method == 'POST':
-        form = PlaceForm(request.POST, request.FILES)
+        form = PlaceForm(request.POST)
         if form.is_valid():
             # Create a pending submission
             # by adding commit=False, we tell Django to create the object but not save it to the database yet
@@ -62,12 +62,19 @@ def edit_place(request, place_id):
     place = get_object_or_404(Place, pk=place_id)
 
     if request.method == 'POST':
-        form = PlaceForm(request.POST, request.FILES)
+        form = PlaceForm(request.POST)
         if form.is_valid():
             pending_submission = form.save(commit=False)
             pending_submission.user = request.user
             pending_submission.action = 'edit'
             pending_submission.original_place = place
+            
+            # Чтобы сохранить оригинальное название
+            # Так как не передаётся пользователем
+            # Теперь, даже если поле name не будет отправлено с формы, 
+            # мы берем его из объекта place и сохраняем в заявке 
+            # pending_submission, гарантируя, что оно не потеряется.
+            pending_submission.name = place.name
             pending_submission.save()
 
             # Сохраняем загруженные фото для заявки на редактирование

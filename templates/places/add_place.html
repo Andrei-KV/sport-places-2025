@@ -4,6 +4,12 @@
 <form method="post" enctype="multipart/form-data"> 
     {% csrf_token %}
     {{ form.as_p }}
+    
+    <p>
+        <label for="id_photos">Фотографии:</label>
+        <input type="file" name="photos" id="id_photos" multiple>
+    </p>
+
     <button type="submit">Добавить</button>
 </form>
 <a href="{% url 'home' %}">Отмена</a>
