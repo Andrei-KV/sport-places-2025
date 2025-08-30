@@ -5,6 +5,9 @@ from django.contrib.auth.models import User
 class Place(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -57,3 +60,18 @@ class Rating(models.Model):
 
     def __str__(self):
         return f'Оценка {self.value} от {self.user.username} для {self.place.name}'
+
+
+class Photo(models.Model):
+    place = models.ForeignKey(Place, on_delete=models.CASCADE, related_name='photos')
+    image = models.ImageField(upload_to='place_photos/')
+
+    def __str__(self):
+        return f'Фото для {self.place.name}'
+# place: A ForeignKey that links each photo to its corresponding Place object. 
+# related_name='photos' will allow us to easily access all photos 
+# for a place with place.photos.all().
+
+# image: An ImageField is a special Django field that handles file uploads. 
+# The upload_to='place_photos/' argument tells Django to save the images to 
+# a sub-directory named place_photos inside your project's MEDIA_ROOT
