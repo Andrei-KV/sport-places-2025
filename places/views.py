@@ -1,3 +1,4 @@
+from django.db import models
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Place, PendingPlace
 from django.contrib.auth.forms import UserCreationForm
@@ -72,8 +73,43 @@ def edit_place(request, place_id):
     return render(request, 'places/edit_place.html', context)
 
 
+
+@login_required # Добавим этот декоратор, чтобы оставлять комментарии могли только авторизованные пользователи
 def place_detail(request, place_id):
     place = get_object_or_404(Place, pk=place_id)
-    context = {'place': place}
-    return render(request, 'places/place_detail.html', context)
+    comments = place.comments.all().order_by('-created_at') # Получаем все комментарии для площадки
 
+    # Получаем среднюю оценку
+    average_rating = place.ratings.aggregate(models.Avg('value'))['value__avg']
+
+    # Обработка форм
+    if request.method == 'POST':
+        if 'comment_submit' in request.POST:
+            comment_form = CommentForm(request.POST)
+            if comment_form.is_valid():
+                new_comment = comment_form.save(commit=False)
+                new_comment.place = place
+                new_comment.user = request.user
+                new_comment.save()
+                return redirect('place_detail', place_id=place.id)
+
+        elif 'rating_submit' in request.POST:
+            rating_form = RatingForm(request.POST)
+            if rating_form.is_valid():
+                new_rating = rating_form.save(commit=False)
+                new_rating.place = place
+                new_rating.user = request.user
+                new_rating.save()
+                return redirect('place_detail', place_id=place.id)
+    else:
+        comment_form = CommentForm()
+        rating_form = RatingForm()
+
+    context = {
+        'place': place,
+        'comments': comments,
+        'average_rating': average_rating,
+        'comment_form': comment_form,
+        'rating_form': rating_form
+    }
+    return render(request, 'places/place_detail.html', context)
