@@ -1,18 +1,15 @@
+{% extends '../base/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ place.name }}</title>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-</head>
-<body>
+
+{% block title %}{{ place.name }}{% endblock %}
+
+{% block content %}
     <h1>{{ place.name }}</h1>
     <p>{{ place.description }}</p>
 
     {# --- Секция для фотогалереи --- #}
     <h2>Фотографии</h2>
-    <div class="photo-gallery-wrapper"> {# Добавили обертку #}
+    <div class="photo-gallery-wrapper">
         {% if photos %}
             <div class="photo-gallery">
                 {% for photo in photos %}
@@ -62,8 +59,4 @@
         {{ rating_form.as_p }}
         <button type="submit" name="rating_submit">Оценить</button>
     </form>
-
-    <br>
-    <a href="{% url 'home' %}">Вернуться в каталог</a>
-</body>
-</html>
+{% endblock %}

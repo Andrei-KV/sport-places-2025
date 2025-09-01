@@ -9,6 +9,13 @@ class Place(models.Model):
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
 
+    @property
+    def first_photo(self):
+        """Возвращает первое фото для использования в качестве миниатюры."""
+        return self.photos.first()
+    # @property — это декоратор в Python, который превращает метод класса в свойство. 
+    # он позволяет вызывать метод, как будто это обычный атрибут (переменная), без скобок ()
+    
     def __str__(self):
         return self.name
     

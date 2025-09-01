@@ -1,45 +1,35 @@
+{% extends '../base/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Каталог спортплощадок</title>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-</head>
-<body>
-    <header>
-        {% if user.is_authenticated %}
-            <p>Привет, {{ user.username }}!</p>
-            <p><a href="{% url 'add_place' %}">Добавить площадку</a></p>
-            <p>
-                <form action="{% url 'logout' %}" method="post">
-                    {% csrf_token %}
-                    <button type="submit">Выйти</button>
-                </form>
-            </p>
-        {% else %}
-            <p><a href="{% url 'register' %}">Зарегистрироваться</a> | <a href="{% url 'login' %}">Войти</a></p>
-        {% endif %}
-        <hr>
-    </header>
-    <h1>{{ title }}</h1>
 
-    <h2>Доступные площадки:</h2>
-    
-    {% for place in places %}
-        <div>
-            <h3><a href="{% url 'place_detail' place.id %}">{{ place.name }}</a></h3>
-            <p>{{ place.description }}</p>
-            {% if user.is_authenticated %}
-                <a href="{% url 'edit_place' place.id %}">Изменить</a>
-            {% endif %}
+{% block content %}
+<div class="container">
+    <div class="card-list">
+        {% for place in places %}
+        <div class="card">
+            <a href="{% url 'place_detail' place.id %}">
+                {% if place.first_photo %}
+                    <img src="{{ place.first_photo.image.url }}" alt="{{ place.name }}" class="card-image">
+                {% else %}
+                    <div class="placeholder-image">
+                        <p>Нет фото</p>
+                    </div>
+                {% endif %}
+                <div class="card-content">
+                    <h3 class="card-title">{{ place.name }}</h3>
+                    {% if place.average_rating %}
+                        <div class="rating-display">
+                            {% for _ in "12345"|make_list %}
+                                <span class="star {% if forloop.counter <= place.average_rating %}filled{% endif %}">&#9733;</span>
+                            {% endfor %}
+                            <span class="rating-value">{{ place.average_rating|floatformat:1 }}</span>
+                        </div>
+                    {% else %}
+                        <p class="no-rating">Нет рейтинга</p>
+                    {% endif %}
+                </div>
+            </a>
         </div>
-        <hr>
-    {% endfor %}
-
-    {% if not places %}
-        <p>К сожалению, площадок пока нет.</p>
-    {% endif %}
-
-</body>
-</html>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

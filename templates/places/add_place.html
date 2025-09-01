@@ -1,6 +1,10 @@
+{% extends '../base/base.html' %}
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/styles.css' %}">
-<h1>Добавить новую площадку</h1>
+
+{% block title %}Добавить площадку{% endblock %}
+
+{% block content %}
+<h2>Добавить новую площадку</h2>
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <div>
@@ -23,6 +27,6 @@
         <label for="id_photos">Фотографии:</label>
         <input type="file" name="photos" id="id_photos" multiple>
     </div>
-    <button type="submit">Добавить</button>
+    <button type="submit">Отправить на модерацию</button>
 </form>
-<a href="{% url 'home' %}">Отмена</a>
+{% endblock %}
