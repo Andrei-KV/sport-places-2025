@@ -11,16 +11,31 @@
     <header class="header">
         <div class="container header-container">
             <div class="logo">
-                <a href="{% url 'home' %}">
+                <a href="{% url 'home' %}" class="logo-link">
+                    <div class="logo-icon"></div>
                     <span class="logo-text">Sport-Places</span>
                 </a>
             </div>
             <nav class="main-nav">
                 <ul class="nav-list">
-                    <li><a href="{% url 'home' %}">Главная</a></li>
+                    <li><a href="{% url 'about' %}">О сайте</a></li>
+                    <li><a href="{% url 'contacts' %}">Контакты</a></li>
+                    <li class="dropdown-menu">
+                        <a href="{% url 'categories' %}">Категории</a>
+                        <ul class="dropdown-content">
+                            <li><a href="#">Теннис</a></li>
+                            <li><a href="#">Волейбол</a></li>
+                        </ul>
+                    </li>
+                    <li class="add-place-nav"><a href="{% url 'add_place' %}">Добавить место</a></li>
                     {% if user.is_authenticated %}
-                        <li><a href="{% url 'add_place' %}">Добавить</a></li>
-                        <li><a href="{% url 'logout' %}">Выйти</a></li>
+                        <li class="user-info-li">
+                            <span class="user-info-small">{{ user.username }}</span>
+                            <form method="post" action="{% url 'logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="logout-button nav-link">Выйти</button>
+                            </form>
+                        </li>
                     {% else %}
                         <li><a href="{% url 'login' %}">Войти</a></li>
                         <li><a href="{% url 'register' %}">Регистрация</a></li>
@@ -38,5 +53,16 @@
     <footer>
         <p>© 2025 Спорт-площадки</p>
     </footer>
+    {# --- Для изменения header --- #}
+    <script>
+        window.onscroll = function() {
+          const header = document.querySelector(".header");
+          if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
+            header.classList.add("smaller");
+          } else {
+            header.classList.remove("smaller");
+          }
+        };
+    </script>
 </body>
 </html>
