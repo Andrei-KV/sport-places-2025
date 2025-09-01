@@ -18,3 +18,55 @@ a {
 a:hover {
     text-decoration: underline;
 }
+/* Стили для фото-галереи */
+.photo-gallery-wrapper {
+    min-height: 220px; /* Задаем минимальную высоту, чтобы область "Нет фото" не была слишком маленькой */
+    display: flex; /* Для центрирования сообщения */
+    align-items: center; /* Центрирование по вертикали */
+    justify-content: center; /* Центрирование по горизонтали */
+    border: 1px dashed #ccc; /* Пунктирная рамка, чтобы обозначить область */
+    border-radius: 8px;
+    margin-bottom: 20px;
+    background-color: #f9f9f9;
+    color: #888;
+    font-style: italic;
+}
+
+.photo-gallery {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    padding: 10px; /* Добавил padding, чтобы фото не прилипали к краям обертки */
+    width: 100%; /* Занимает всю ширину обертки */
+    box-sizing: border-box; /* Важно, чтобы padding не увеличивал ширину */
+}
+
+.photo-gallery img {
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0; /* Чтобы изображения не сжимались */
+}
+
+.no-photos-message {
+    padding: 20px;
+    text-align: center;
+    font-size: 1.2em;
+}
+
+/* Стили для контейнера карты */
+.map-container {
+    height: 400px;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.map-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}

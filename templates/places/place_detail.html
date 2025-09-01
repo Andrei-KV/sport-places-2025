@@ -10,6 +10,30 @@
     <h1>{{ place.name }}</h1>
     <p>{{ place.description }}</p>
 
+    {# --- Секция для фотогалереи --- #}
+    <h2>Фотографии</h2>
+    <div class="photo-gallery-wrapper"> {# Добавили обертку #}
+        {% if photos %}
+            <div class="photo-gallery">
+                {% for photo in photos %}
+                    <img src="{{ photo.image.url }}" alt="{{ place.name }}">
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-photos-message">
+                <p>Нет фото</p>
+            </div>
+        {% endif %}
+    </div>
+
+    {# --- Секция для карты --- #}
+    {% if place_map %}
+        <h2>Местоположение</h2>
+        <div class="map-container">
+            {{ place_map|safe }}
+        </div>
+    {% endif %}
+    
     <h2>Рейтинг: {{ average_rating|floatformat:1 }} / 5</h2>
 
     <h3>Комментарии:</h3>

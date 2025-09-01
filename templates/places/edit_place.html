@@ -1,23 +1,28 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-<h1>Добавить новую площадку</h1>
+<h1>Изменить площадку</h1>
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    
     <div>
         <label for="id_name">Название площадки:</label>
-        <input type="text" name="name" id="id_name" value="{{ form.name.value }}" required disabled>
+        <input type="text" name="name" id="id_name" required>
     </div>
-    
     <div>
         <label for="id_description">Описание:</label>
-        <textarea name="description" id="id_description" required>{{ form.description.value }}</textarea>
+        <textarea name="description" id="id_description" required></textarea>
     </div>
-    
+    <div>
+        <label for="id_latitude">Широта:</label>
+        <input type="text" name="latitude" id="id_latitude">
+    </div>
+    <div>
+        <label for="id_longitude">Долгота:</label>
+        <input type="text" name="longitude" id="id_longitude">
+    </div>
     <div>
         <label for="id_photos">Фотографии:</label>
         <input type="file" name="photos" id="id_photos" multiple>
     </div>
-
-    <button type="submit">Отправить на модерацию</button>
+    <button type="submit">Добавить</button>
 </form>
+<a href="{% url 'home' %}">Отмена</a>

@@ -2,6 +2,10 @@ from django import forms
 from .models import Place, PendingPlace, Comment, Rating
 
 class PlaceForm(forms.ModelForm):
+    
+    latitude = forms.DecimalField(max_digits=9, decimal_places=6, required=False)
+    longitude = forms.DecimalField(max_digits=9, decimal_places=6, required=False)
+
     class Meta:
         model = PendingPlace
         fields = ['name', 'description']

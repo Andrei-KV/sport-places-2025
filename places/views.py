@@ -4,7 +4,7 @@ from .models import Place, PendingPlace, Comment, Rating, Photo
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from .forms import PlaceForm, CommentForm, RatingForm
-from django.http import HttpResponse
+import folium
 
 
 def home_page(request):
@@ -41,7 +41,10 @@ def add_place(request):
             pending_submission.user = request.user
             pending_submission.action = 'add'
             pending_submission.save()
-
+            # Сохранение координат
+            pending_submission.latitude = form.cleaned_data['latitude']
+            pending_submission.longitude = form.cleaned_data['longitude']
+            pending_submission.save()
             # Сохраняем загруженные фото
             for f in request.FILES.getlist('photos'):
                 Photo.objects.create(pending_place=pending_submission, image=f)
@@ -76,6 +79,10 @@ def edit_place(request, place_id):
             # pending_submission, гарантируя, что оно не потеряется.
             pending_submission.name = place.name
             pending_submission.save()
+            # Сохранение координат
+            pending_submission.latitude = form.cleaned_data['latitude']
+            pending_submission.longitude = form.cleaned_data['longitude']
+            pending_submission.save()
 
             # Сохраняем загруженные фото для заявки на редактирование
             for f in request.FILES.getlist('photos'):
@@ -93,12 +100,24 @@ def edit_place(request, place_id):
 
 
 @login_required # Добавим этот декоратор, чтобы оставлять комментарии могли только авторизованные пользователи
+@login_required 
 def place_detail(request, place_id):
     place = get_object_or_404(Place, pk=place_id)
-    comments = place.comments.all().order_by('-created_at') # Получаем все комментарии для площадки
+    comments = place.comments.all().order_by('-created_at')
+    photos = place.photos.all() # Получаем все фото для этой площадки
 
     # Получаем среднюю оценку
     average_rating = place.ratings.aggregate(models.Avg('value'))['value__avg']
+
+    # Создаем карту
+    place_map = None # Инициализируем переменную
+    if place.latitude and place.longitude:
+        m = folium.Map(location=[place.latitude, place.longitude], zoom_start=15)
+        folium.Marker(
+            [place.latitude, place.longitude],
+            tooltip=place.name
+        ).add_to(m)
+        place_map = m._repr_html_()
 
     # Обработка форм
     if request.method == 'POST':
@@ -128,6 +147,8 @@ def place_detail(request, place_id):
         'comments': comments,
         'average_rating': average_rating,
         'comment_form': comment_form,
-        'rating_form': rating_form
+        'rating_form': rating_form,
+        'photos': photos, 
+        'place_map': place_map, 
     }
     return render(request, 'places/place_detail.html', context)

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Place, PendingPlace
+from .models import Place, PendingPlace, Photo
 
 
 admin.site.register(Place)
@@ -24,12 +24,27 @@ class PendingPlaceAdmin(admin.ModelAdmin):
     def approve_submission(self, request, queryset):
         for submission in queryset:
             if submission.action == 'add':
-                Place.objects.create(name=submission.name, description=submission.description)
+                new_place = Place.objects.create(
+                    name=submission.name,
+                    description=submission.description,
+                    user=submission.user,
+                    latitude=submission.latitude,  # Копируем широту
+                    longitude=submission.longitude # Копируем долготу
+                )
+                # Копируем фотографии, изменяя их связь
+                # 1. Находим все фото, связанные с текущей заявкой
+                photos_to_copy = Photo.objects.filter(pending_place=submission)
+                # 2. Обновляем ForeignKey у каждой фотографии
+                photos_to_copy.update(pending_place=None, place=new_place)
+
             elif submission.action == 'edit':
                 original = submission.original_place
-                original.name = submission.name
-                original.description = submission.description
+                original.description = submission.description # Обновляем только описание
                 original.save()
+                
+                # Переносим новые фото, добавленные при редактировании
+                photos_to_copy = Photo.objects.filter(pending_place=submission)
+                photos_to_copy.update(pending_place=None, place=original)
             # For 'delete' actions, the admin would likely delete the object from this list.
             
             submission.status = 'approved'
@@ -41,3 +56,10 @@ class PendingPlaceAdmin(admin.ModelAdmin):
 # If action is 'add', it creates a new Place object.
 # If action is 'edit', it finds the original Place object and updates it.
 # Finally, it sets the status of the PendingPlace submission to 'approved' and saves it.
+
+
+# Регистрируем модель Photo в админ-панели для просмотра загруженных фото
+@admin.register(Photo)
+class PhotoAdmin(admin.ModelAdmin):
+    list_display = ('image', 'pending_place', 'place')
+    list_filter = ('pending_place', 'place')
