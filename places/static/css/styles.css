@@ -58,7 +58,7 @@ h1, h2, h3 {
     max-width: 1220px;
     margin: 0 auto;
     padding: 15px 20px;
-    box-sizing: border-box;
+    
     transition: all 0.3s ease-in-out;
 }
 
@@ -212,10 +212,24 @@ footer {
 .card-list {
     display: grid;
     gap: 20px;
+    padding: 0 0 20px 0;
 }
 
 .category-list {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
+}
+
+/* Адаптивность для экранов меньшей ширины, чтобы не было полосы прокрутки */
+@media (max-width: 992px) {
+    .category-list {
+        grid-template-columns: repeat(3, 1fr); /* Например, 3 колонки на планшетах */
+    }
+}
+
+@media (max-width: 768px) {
+    .category-list {
+        grid-template-columns: repeat(2, 1fr); /* 2 колонки на мобильных устройствах */
+    }
 }
 
 .card {
@@ -272,7 +286,8 @@ footer {
 }
 
 .section-title {
-    text-align: center;
+    text-align: left; /* Aligns the text to the left */
+    text-transform: uppercase; /* Converts all text to uppercase */
     margin-bottom: 20px;
 }
 

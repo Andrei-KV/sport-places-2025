@@ -26,7 +26,7 @@
             </div>
             {% endfor %}
         </div>
-        <div id="other-categories" class="card-list other-categories-list" style="display: none;">
+        <div class="card-list category-list" id="other-categories" style="display: none;">
             {% for category in other_categories %}
             <div class="category-card">
                 <a href="{% url 'category_detail' category.slug %}">
