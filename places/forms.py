@@ -1,14 +1,19 @@
 from django import forms
-from .models import Place, PendingPlace, Comment, Rating
+from .models import Place, PendingPlace, Comment, Rating, Category
 
 class PlaceForm(forms.ModelForm):
-    
-    latitude = forms.DecimalField(max_digits=9, decimal_places=6, required=False)
-    longitude = forms.DecimalField(max_digits=9, decimal_places=6, required=False)
+    # Поле для выбора существующей категории
+    existing_category = forms.ModelChoiceField(
+        queryset=Category.objects.all().order_by('name'),
+        required=False,
+        empty_label="Выберите категорию"
+    )
+    # Поле для ввода новой категории, если ее нет в списке
+    new_category_name = forms.CharField(max_length=100, required=False)
 
     class Meta:
         model = PendingPlace
-        fields = ['name', 'description']
+        fields = ['name', 'description', 'latitude', 'longitude']
 
 
 class CommentForm(forms.ModelForm):

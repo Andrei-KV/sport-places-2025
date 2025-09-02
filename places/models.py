@@ -1,6 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+# Модель для категорий площадок
+class Category(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(unique=True, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
 # Модель для одобренных площадок
 class Place(models.Model):
     name = models.CharField(max_length=200)
@@ -8,6 +16,8 @@ class Place(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='places')
+
 
     @property
     def first_photo(self):
@@ -46,6 +56,7 @@ class PendingPlace(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     action = models.CharField(max_length=20, choices=ACTION_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f"{self.action.capitalize()} - {self.name}"

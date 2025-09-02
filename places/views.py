@@ -1,6 +1,6 @@
 from django.db import models
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Place, PendingPlace, Comment, Rating, Photo
+from .models import Place, PendingPlace, Comment, Rating, Photo, Category
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from .forms import PlaceForm, CommentForm, RatingForm
@@ -8,10 +8,11 @@ import folium
 
 
 def home_page(request):
-    all_places = Place.objects.all()  # Получаем все площадки из базы данных
+    places = Place.objects.all().order_by('name')
+    categories = Category.objects.all().order_by('name') # Получаем все категории
     context = {
-        'title': 'Каталог спортивных площадок',
-        'places': all_places,  # Передаём список площадок в контекст
+        'places': places,
+        'categories': categories, # Передаем их в контекст
     }
     return render(request, 'places/home.html', context)
 
@@ -33,32 +34,39 @@ def register(request):
 @login_required
 def add_place(request):
     if request.method == 'POST':
-        form = PlaceForm(request.POST)
+        form = PlaceForm(request.POST, request.FILES)
         if form.is_valid():
-            # Create a pending submission
-            # by adding commit=False, we tell Django to create the object but not save it to the database yet
-            pending_submission = form.save(commit=False)
-            pending_submission.user = request.user
-            pending_submission.action = 'add'
-            pending_submission.save()
-            # Сохранение координат
-            pending_submission.latitude = form.cleaned_data['latitude']
-            pending_submission.longitude = form.cleaned_data['longitude']
-            pending_submission.save()
-            # Сохраняем загруженные фото
-            for f in request.FILES.getlist('photos'):
-                Photo.objects.create(pending_place=pending_submission, image=f)
+            # Обработка категории
+            existing_category = form.cleaned_data.get('existing_category')
+            new_category_name = form.cleaned_data.get('new_category_name')
+            category = None
+
+            if new_category_name:
+                # Если введена новая категория, создаем ее
+                category, created = Category.objects.get_or_create(name=new_category_name)
+            elif existing_category:
+                # Иначе используем выбранную
+                category = existing_category
+
+            pending_place = form.save(commit=False)
+            pending_place.user = request.user
+            pending_place.category = category # Сохраняем категорию
+            pending_place.save()
+
+            for photo_file in request.FILES.getlist('photos'):
+                Photo.objects.create(image=photo_file, pending_place=pending_place)
+
+            return redirect('home')
+    else:
+        form = PlaceForm()
+    
+    context = {'form': form, 'categories': Category.objects.all().order_by('name')}
+    return render(request, 'places/add_place.html', context)
 
 # pending_submission.save(): Now that we've made all the necessary changes to the object in memory, 
 # we call .save() without any parameters. This finalizes the process 
 # and saves the pending_submission object to the PendingPlace table in the database
 
-            return redirect('home')  # Redirect to home after submission
-    else:
-        form = PlaceForm()
-
-    context = {'form': form}
-    return render(request, 'places/add_place.html', context)
 
 @login_required
 def edit_place(request, place_id):

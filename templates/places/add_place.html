@@ -15,6 +15,16 @@
         <label for="id_description">Описание:</label>
         <textarea name="description" id="id_description" required></textarea>
     </div>
+
+    <div>
+        <label for="id_existing_category">Категория:</label>
+        {{ form.existing_category }}
+    </div>
+    <div>
+        <label for="id_new_category_name">Или добавить новую категорию:</label>
+        <input type="text" name="new_category_name" id="id_new_category_name">
+    </div>
+
     <div>
         <label for="id_latitude">Широта:</label>
         <input type="text" name="latitude" id="id_latitude">

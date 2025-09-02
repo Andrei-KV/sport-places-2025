@@ -18,15 +18,17 @@
             </div>
             <nav class="main-nav">
                 <ul class="nav-list">
-                    <li><a href="{% url 'about' %}">О сайте</a></li>
-                    <li><a href="{% url 'contacts' %}">Контакты</a></li>
                     <li class="dropdown-menu">
-                        <a href="{% url 'categories' %}">Категории</a>
+                        <a href="#">Категории</a>
                         <ul class="dropdown-content">
-                            <li><a href="#">Теннис</a></li>
-                            <li><a href="#">Волейбол</a></li>
+                            {% for category in categories %}
+                                <li><a href="{% url 'home' %}">{{ category.name }}</a></li>
+                            {% endfor %}
                         </ul>
                     </li>
+                    <li>
+                        <a href="#">Регион: <span class="current-region">Минск</span></a>
+                        </li>
                     <li class="add-place-nav"><a href="{% url 'add_place' %}">Добавить место</a></li>
                     {% if user.is_authenticated %}
                         <li class="user-info-li">
@@ -51,7 +53,16 @@
     </main>
     
     <footer>
-        <p>© 2025 Спорт-площадки</p>
+        <div class="footer-container">
+            <p>© 2025</p>
+            <nav class="footer-nav">
+                <ul class="nav-list">
+                    <li><a href="{% url 'about' %}">О сайте</a></li>
+                    <li><a href="{% url 'contacts' %}">Контакты</a></li>
+                </ul>
+            </nav>
+            <a href="https://github.com/Andrei-KV" class="last-string-text-link last-string-right">Andrei-KV</a>
+        </div>
     </footer>
     {# --- Для изменения header --- #}
     <script>

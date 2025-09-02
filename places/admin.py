@@ -1,8 +1,13 @@
 from django.contrib import admin
-from .models import Place, PendingPlace, Photo
+from .models import Place, PendingPlace, Photo, Category
 
 
 admin.site.register(Place)
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ['name']
+    prepopulated_fields = {'slug': ('name',)}
 
 # Create a custom Admin class for the PendingPlace model
 # Позволяет применять модерацию в один клик
@@ -29,7 +34,8 @@ class PendingPlaceAdmin(admin.ModelAdmin):
                     description=submission.description,
                     user=submission.user,
                     latitude=submission.latitude,  # Копируем широту
-                    longitude=submission.longitude # Копируем долготу
+                    longitude=submission.longitude, # Копируем долготу
+                    category=submission.category,
                 )
                 # Копируем фотографии, изменяя их связь
                 # 1. Находим все фото, связанные с текущей заявкой

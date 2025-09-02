@@ -4,21 +4,32 @@ body {
     margin: 0;
     background-color: #f4f4f4;
     color: #333;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Set a minimum height for the body */
 }
 
+/* Base link styles - These will be overridden by more specific styles */
+a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Container for all sections */
 .container {
-    max-width: 1200px;
+    max-width: 1220px;
     margin: 0 auto;
     padding: 20px;
 }
 
 /* Header and Navigation Styles */
-/* Header and Navigation Styles (Sticky and Animated) */
-/* General Header Styles */
 .header {
     background-color: #2c3e50;
     color: #ecf0f1;
-    padding: 0 0;
     position: fixed;
     top: 0;
     width: 100%;
@@ -27,35 +38,62 @@ body {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-/* New CSS for Smaller Header on Scroll */
 .header.smaller {
-    padding: 0 0; /* Reduced vertical padding */
+    padding: 0;
+}
+
+.header.smaller .header-container {
+    padding: 10px 0;
 }
 
 .header.smaller .logo-text {
-    font-size: 1.4em; /* Smaller font for logo text */
+    font-size: 1.4em;
 }
 
 .header.smaller .main-nav a,
 .header.smaller .logout-button {
-    font-size: 0.9em; /* Smaller font for navigation links */
+    font-size: 0.9em;
 }
 
 .header.smaller .user-info-small {
-    font-size: 0.7em; /* Even smaller font for username */
+    font-size: 0.7em;
 }
 
 .header-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 0;
-    padding: 0 0 0 0;
+    margin: 0 auto;
+    padding: 15px 20px;
     box-sizing: border-box;
+    max-width: 1220px;
 }
 
-.add-place-nav {
-    margin-right: 20px; /* Adjust as needed for spacing */
+.logo-text {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #ecf0f1;
+    text-decoration: none;
+}
+
+.main-nav .nav-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center; /* Vertically centers the list items */
+    gap: 20px;
+}
+
+.main-nav a {
+    color: #ecf0f1;
+    text-decoration: none;
+    font-size: 1em;
+    transition: color 0.3s ease;
+}
+
+.main-nav a:hover {
+    color: #3498db;
 }
 
 .user-info-li {
@@ -76,13 +114,17 @@ body {
     border: none;
     color: #ecf0f1;
     cursor: pointer;
-    font-size: 1.1em;
+    font-size: 1em;
     padding: 0;
 }
 
 .logout-button:hover {
     color: #3498db;
     text-decoration: underline;
+}
+
+.add-place-nav {
+    margin-right: 20px;
 }
 
 /* Dropdown Menu CSS */
@@ -93,7 +135,7 @@ body {
 .dropdown-content {
     display: none;
     position: absolute;
-    background-color: #34495e; /* Darker background */
+    background-color: #34495e;
     min-width: 160px;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     z-index: 1;
@@ -114,15 +156,25 @@ body {
     color: white;
 }
 
-.logo-text {
-    font-size: 1.8em;
-    font-weight: bold;
+/* Footer Styles - Corrected and Unified */
+footer {
+    background-color: #2c3e50;
     color: #ecf0f1;
-    text-decoration: none;
+    margin-top: 40px;
 }
 
+.footer-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1220px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 15px 20px;
+    box-sizing: border-box;
+}
 
-.main-nav .nav-list {
+.footer-nav .nav-list {
     list-style: none;
     margin: 0;
     padding: 0;
@@ -130,108 +182,34 @@ body {
     gap: 20px;
 }
 
-.main-nav a {
+.footer-nav a {
     color: #ecf0f1;
     text-decoration: none;
     font-size: 1em;
     transition: color 0.3s ease;
 }
 
-.main-nav a:hover {
-    color: #3498db; /* A light blue hover effect */
+.footer-nav a:hover {
+    color: #3498db;
 }
 
-/* Footer Styles */
-footer {
-    text-align: center;
-    padding: 20px;
-    background-color: #2c3e50;
-    color: #ecf0f1;
-    margin-top: 40px;
+/* Main Content Styles */
+main {
+    padding-top: 60px; /* To prevent content from being hidden by the fixed header */
+    flex: 1; /* This is the key rule */
 }
 
 h1, h2 {
     color: #0056b3;
 }
 
-a {
-    color: #007bff;
-    text-decoration: none;
-}
-
-a:hover {
-    text-decoration: underline;
-}
-/* Стили для фото-галереи */
-.photo-gallery-wrapper {
-    min-height: 220px; /* Задаем минимальную высоту, чтобы область "Нет фото" не была слишком маленькой */
-    display: flex; /* Для центрирования сообщения */
-    align-items: center; /* Центрирование по вертикали */
-    justify-content: center; /* Центрирование по горизонтали */
-    border: 1px dashed #ccc; /* Пунктирная рамка, чтобы обозначить область */
-    border-radius: 8px;
-    margin-bottom: 20px;
-    background-color: #f9f9f9;
-    color: #888;
-    font-style: italic;
-}
-
-.photo-gallery {
-    display: flex;
-    overflow-x: auto;
-    gap: 10px;
-    padding: 10px; /* Добавил padding, чтобы фото не прилипали к краям обертки */
-    width: 100%; /* Занимает всю ширину обертки */
-    box-sizing: border-box; /* Важно, чтобы padding не увеличивал ширину */
-}
-
-.photo-gallery img {
-    height: 200px;
-    object-fit: cover;
-    border-radius: 8px;
-    flex-shrink: 0; /* Чтобы изображения не сжимались */
-}
-
-.no-photos-message {
-    padding: 20px;
-    text-align: center;
-    font-size: 1.2em;
-}
-
-/* Стили для контейнера карты */
-.map-container {
-    height: 400px;
-    width: 100%;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    overflow: hidden;
-    margin-top: 20px;
-    margin-bottom: 20px;
-}
-
-.map-container iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-}
-
-/* ------------------------------------------ */
-/* Настройки стартовой страницы */
-/* Общие стили для контейнера */
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 15px;
-}
-
-/* Стили для сетки карточек */
+/* Settings for Home Page Cards */
 .card-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 20px;
 }
 
-/* Стили для отдельной карточки */
 .card {
     border: 1px solid #e0e0e0;
     border-radius: 8px;
@@ -257,7 +235,6 @@ a:hover {
     display: block;
 }
 
-/* Стили для плейсхолдера, если нет фото */
 .placeholder-image {
     width: 100%;
     height: 200px;
@@ -268,7 +245,6 @@ a:hover {
     color: #888;
 }
 
-/* Стили для контента внутри карточки */
 .card-content {
     padding: 15px;
 }
@@ -278,11 +254,10 @@ a:hover {
     font-size: 1.2em;
 }
 
-/* Стили для звездного рейтинга */
 .rating-display {
     display: flex;
     align-items: center;
-    color: #f39c12; /* Цвет звезд */
+    color: #f39c12;
 }
 
 .rating-display .star {
@@ -291,7 +266,7 @@ a:hover {
 }
 
 .rating-display .star.filled {
-    color: #f1c40f; /* Заполненный цвет */
+    color: #f1c40f;
 }
 
 .rating-value {
@@ -303,4 +278,56 @@ a:hover {
 .no-rating {
     color: #888;
     font-style: italic;
+}
+
+/* Styles for Place Detail Page */
+.photo-gallery-wrapper {
+    min-height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    background-color: #f9f9f9;
+    color: #888;
+    font-style: italic;
+}
+
+.photo-gallery {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.photo-gallery img {
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.no-photos-message {
+    padding: 20px;
+    text-align: center;
+    font-size: 1.2em;
+}
+
+.map-container {
+    height: 400px;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.map-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
 }
