@@ -5,6 +5,10 @@ from django.contrib.auth.models import User
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(unique=True, blank=True, null=True)
+    cover_photo = models.ImageField(upload_to='category_covers/', blank=True, null=True)
+    # Для отслеживания популярности для порядка отображения
+    view_count = models.PositiveIntegerField(default=0)
+
 
     def __str__(self):
         return self.name

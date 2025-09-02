@@ -1,0 +1,61 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ current_category.name }}{% endblock %}
+
+{% block content %}
+<div class="category-page-wrapper">
+    <div class="category-list-container">
+        <div class="category-header">
+            <h1 class="current-category-title">{{ current_category.name }}</h1>
+            <div class="category-dropdown-wrapper">
+                <select id="category-select" onchange="window.location.href = this.value;">
+                    <option value="#" disabled>Выберите другую категорию</option>
+                    {% for cat in all_categories %}
+                        <option value="{% url 'category_detail' cat.slug %}" {% if cat == current_category %}selected{% endif %}>
+                            {{ cat.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="place-list-scrollable">
+            {% if places %}
+                {% for place in places %}
+                <div class="place-card-mini">
+                    <a href="{% url 'place_detail' place.id %}">
+                        <div class="place-photo-mini">
+                            {% if place.first_photo %}
+                                <img src="{{ place.first_photo.image.url }}" alt="{{ place.name }}">
+                            {% endif %}
+                        </div>
+                        <div class="place-info-mini">
+                            <h3>{{ place.name }}</h3>
+                            <p class="place-address">{{ place.address }}</p>
+                            <div class="rating-display">
+                                {% if place.average_rating %}
+                                    {% for _ in "12345"|make_list %}
+                                        <span class="star {% if forloop.counter <= place.average_rating %}filled{% endif %}">&#9733;</span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="no-rating">Нет рейтинга</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>В этой категории пока нет площадок.</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="map-container fixed-map">
+        {% if place_map %}
+            {{ place_map|safe }}
+        {% else %}
+            <p>Нет маркеров для отображения.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

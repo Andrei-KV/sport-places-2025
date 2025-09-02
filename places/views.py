@@ -8,14 +8,54 @@ import folium
 
 
 def home_page(request):
-    places = Place.objects.all().order_by('name')
-    categories = Category.objects.all().order_by('name') # Получаем все категории
+    # Получаем 8 самых популярных категорий
+    popular_categories = Category.objects.order_by('-view_count')[:8]
+    # Получаем остальные категории в алфавитном порядке
+    other_categories = Category.objects.exclude(
+        pk__in=popular_categories.values('pk')
+    ).order_by('name')
+
     context = {
-        'places': places,
-        'categories': categories, # Передаем их в контекст
+        'popular_categories': popular_categories,
+        'other_categories': other_categories,
+        'places': Place.objects.all(), # Оставляем, чтобы передавать в header
     }
     return render(request, 'places/home.html', context)
 
+def category_detail(request, category_slug):
+    category = get_object_or_404(Category, slug=category_slug)
+    
+    # Увеличиваем счетчик просмотров при каждом посещении
+    category.view_count += 1
+    category.save()
+
+    # Получаем все площадки, относящиеся к этой категории
+    places = category.places.all()
+
+    # Создаем карту с маркерами для всех площадок
+    place_map = None
+    if places:
+        # Центрируем карту по первой площадке
+        center_lat = places.first().latitude
+        center_lon = places.first().longitude
+        m = folium.Map(location=[center_lat, center_lon], zoom_start=12)
+
+        for place in places:
+            folium.Marker(
+                [place.latitude, place.longitude],
+                tooltip=place.name,
+                popup=f"<b>{place.name}</b><br>{place.description}"
+            ).add_to(m)
+        
+        place_map = m._repr_html_()
+
+    context = {
+        'current_category': category,
+        'places': places,
+        'place_map': place_map,
+        # 'all_categories': Category.objects.all().order_by('name'), -- т.к. теперь для всех через контекстный процессор
+    }
+    return render(request, 'places/category_detail.html', context)
 
 def register(request):
     if request.method == 'POST':

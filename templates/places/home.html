@@ -1,35 +1,108 @@
 {% extends 'base/base.html' %}
 {% load static %}
 
+{% block title %}Спорт-площадки{% endblock %}
+
 {% block content %}
 <div class="container">
-    <div class="card-list">
-        {% for place in places %}
-        <div class="card">
-            <a href="{% url 'place_detail' place.id %}">
-                {% if place.first_photo %}
-                    <img src="{{ place.first_photo.image.url }}" alt="{{ place.name }}" class="card-image">
-                {% else %}
-                    <div class="placeholder-image">
-                        <p>Нет фото</p>
-                    </div>
-                {% endif %}
-                <div class="card-content">
-                    <h3 class="card-title">{{ place.name }}</h3>
-                    {% if place.average_rating %}
-                        <div class="rating-display">
-                            {% for _ in "12345"|make_list %}
-                                <span class="star {% if forloop.counter <= place.average_rating %}filled{% endif %}">&#9733;</span>
-                            {% endfor %}
-                            <span class="rating-value">{{ place.average_rating|floatformat:1 }}</span>
-                        </div>
+    <div class="category-section">
+        <h2 class="section-title">Выбрать категорию</h2>
+        <div class="card-list category-list">
+            {% for category in popular_categories %}
+            <div class="category-card">
+                <a href="{% url 'category_detail' category.slug %}">
+                    {% if category.cover_photo %}
+                        <img src="{{ category.cover_photo.url }}" alt="{{ category.name }}" class="card-image category-image">
                     {% else %}
-                        <p class="no-rating">Нет рейтинга</p>
+                        <div class="placeholder-image">
+                            <p>Нет фото</p>
+                        </div>
                     {% endif %}
-                </div>
-            </a>
+                    <div class="category-overlay">
+                        <h3 class="category-title">{{ category.name }}</h3>
+                        <p class="category-count">{{ category.places.count }} площадок</p>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
+        <div id="other-categories" class="card-list other-categories-list" style="display: none;">
+            {% for category in other_categories %}
+            <div class="category-card">
+                <a href="{% url 'category_detail' category.slug %}">
+                    {% if category.cover_photo %}
+                        <img src="{{ category.cover_photo.url }}" alt="{{ category.name }}" class="card-image category-image">
+                    {% else %}
+                        <div class="placeholder-image">
+                            <p>Нет фото</p>
+                        </div>
+                    {% endif %}
+                    <div class="category-overlay">
+                        <h3 class="category-title">{{ category.name }}</h3>
+                        <p class="category-count">{{ category.places.count }} площадок</p>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% if other_categories %}
+            <div class="show-all-btn-container">
+                <button id="show-all-btn">Показать все категории</button>
+            </div>
+        {% endif %}
+    </div>
+
+    <hr>
+
+    <div class="place-section">
+        <h2 class="section-title">Все площадки</h2>
+        <div class="card-list place-list">
+            {% for place in places %}
+            <div class="card">
+                <a href="{% url 'place_detail' place.id %}">
+                    {% if place.first_photo %}
+                        <img src="{{ place.first_photo.image.url }}" alt="{{ place.name }}" class="card-image">
+                    {% else %}
+                        <div class="placeholder-image">
+                            <p>Нет фото</p>
+                        </div>
+                    {% endif %}
+                    <div class="card-content">
+                        <h3 class="card-title">{{ place.name }}</h3>
+                        {% if place.average_rating %}
+                            <div class="rating-display">
+                                {% for _ in "12345"|make_list %}
+                                    <span class="star {% if forloop.counter <= place.average_rating %}filled{% endif %}">&#9733;</span>
+                                {% endfor %}
+                                <span class="rating-value">{{ place.average_rating|floatformat:1 }}</span>
+                            </div>
+                        {% else %}
+                            <p class="no-rating">Нет рейтинга</p>
+                        {% endif %}
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const showAllBtn = document.getElementById('show-all-btn');
+    const otherCategories = document.getElementById('other-categories');
+
+    if (showAllBtn) {
+        showAllBtn.addEventListener('click', function() {
+            if (otherCategories.style.display === 'none') {
+                otherCategories.style.display = 'grid';
+                showAllBtn.textContent = 'Скрыть';
+            } else {
+                otherCategories.style.display = 'none';
+                showAllBtn.textContent = 'Показать все категории';
+            }
+        });
+    }
+});
+</script>
 {% endblock %}
