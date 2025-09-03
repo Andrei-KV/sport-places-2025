@@ -1,4 +1,5 @@
 from django.db import models
+from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Place, PendingPlace, Comment, Rating, Photo, Category
 from django.contrib.auth.forms import UserCreationForm
@@ -15,10 +16,20 @@ def home_page(request):
         pk__in=popular_categories.values('pk')
     ).order_by('name')
 
+    # Получаем 8 самых популярных площадок по среднему рейтингу
+    #    (Аннотируем каждую площадку средним рейтингом и сортируем по убыванию)
+    popular_places = Place.objects.annotate(
+        average_rating=models.Avg('ratings__value')
+    ).filter(
+        # Не показывать площадки без рейтинга, если это нужно
+        average_rating__isnull=False
+    ).order_by(models.F('average_rating').desc(nulls_last=True))[:8]
+
+    # Контекст, чтобы передавать популярные площадки
     context = {
         'popular_categories': popular_categories,
         'other_categories': other_categories,
-        'places': Place.objects.all(), # Оставляем, чтобы передавать в header
+        'popular_places': popular_places,
     }
     return render(request, 'places/home.html', context)
 
@@ -41,19 +52,95 @@ def category_detail(request, category_slug):
         m = folium.Map(location=[center_lat, center_lon], zoom_start=12)
 
         for place in places:
+            yandex_maps_url = f"https://yandex.ru/maps/?rtext=~{place.latitude},{place.longitude}&z=15"
+            first_photo = place.first_photo
+            place_detail_url = request.build_absolute_uri(reverse('place_detail', args=[place.id]))
+            # Проверяем, существует ли фотография
+            if first_photo:
+                # Получаем абсолютный URL для фото, используя request
+                photo_url = request.build_absolute_uri(first_photo.image.url)
+                
+
+                # HTML-содержимое для iframe с абсолютным URL
+                iframe_html = f"""
+                    <style>
+                        body, html {{
+                            margin: 0 !important;
+                            padding: 0 !important;
+                        }}
+                    </style>
+                    <div style="
+                        display: flex; 
+                        flex-direction: column; 
+                        width: 100%; 
+                        height: 100%; 
+                        box-sizing: border-box; 
+                        font-family: Arial, sans-serif;
+                    ">
+                        <div style="
+                            position: relative; 
+                            width: 100%; 
+                            height: 100%; 
+                            overflow: hidden; 
+                            border-radius: 4px;
+                        ">
+                            <img src="{photo_url}"
+                                style="
+                                    position: absolute; 
+                                    top: 0; 
+                                    left: 0; 
+                                    width: 100%; 
+                                    height: 100%; 
+                                    object-fit: cover;
+                                "
+                                alt="{place.name} фото">
+                        </div>
+                        
+                        <div style="padding: 10px 10px 0 10px; flex-grow: 1;">
+                            <h3 style="
+                                margin-top: 0; 
+                                margin-bottom: 5px; 
+                                font-size: 1em;
+                            ">
+                                <a href="{place_detail_url}" 
+                                    target="_top"
+     onclick="L.DomEvent.stopPropagation(event);"
+                                    style="color: #007bff; text-decoration: none; font-weight: bold;"
+                                >{place.name}</a>
+                            </h3>
+                            <a href="{yandex_maps_url}" 
+                                target="_blank"
+                                onclick="return L.DomEvent.stopPropagation(event);" 
+                                style="color: #555; font-size: 0.9em; text-decoration: none;"
+                                >Построить маршрут</a>
+                        </div>
+                    </div>
+                """
+            else:
+                # Если фото нет, отображаем только название и ссылку
+                iframe_html = f"""
+                <h3 style="margin-bottom: 5px; font-size: 1em;"><a href="{place_detail_url}" target="_parent" style="color: #007bff; text-decoration: none; font-weight: bold;">{place.name}</a></h3>
+                <a href="{yandex_maps_url}" target="_blank" style="color: #555; font-size: 0.9em; text-decoration: none;">Построить маршрут</a>
+                """
+            
+            # Создаём IFrame с фиксированной шириной и адаптивной высотой
+            iframe = folium.IFrame(html=iframe_html, width="200px", height="auto",)
+            
+            # Popup с максимальной шириной 200px
+            popup = folium.Popup(iframe, max_width="200px", max_height="400px")
+
             folium.Marker(
                 [place.latitude, place.longitude],
                 tooltip=place.name,
-                popup=f"<b>{place.name}</b><br>{place.description}"
+                popup=popup
             ).add_to(m)
-        
+
         place_map = m._repr_html_()
 
     context = {
         'current_category': category,
         'places': places,
         'place_map': place_map,
-        # 'all_categories': Category.objects.all().order_by('name'), -- т.к. теперь для всех через контекстный процессор
     }
     return render(request, 'places/category_detail.html', context)
 
@@ -90,6 +177,7 @@ def add_place(request):
 
             pending_place = form.save(commit=False)
             pending_place.user = request.user
+            pending_place.action = 'add'
             pending_place.category = category # Сохраняем категорию
             pending_place.save()
 
@@ -181,10 +269,21 @@ def place_detail(request, place_id):
         elif 'rating_submit' in request.POST:
             rating_form = RatingForm(request.POST)
             if rating_form.is_valid():
-                new_rating = rating_form.save(commit=False)
-                new_rating.place = place
-                new_rating.user = request.user
-                new_rating.save()
+                value = rating_form.cleaned_data['value']
+                user = request.user
+                
+                # Ищем существующую оценку или создаем новую
+                rating, created = Rating.objects.get_or_create(
+                    place=place,
+                    user=user,
+                    defaults={'value': value} # Значение для новой записи
+                )
+                
+                # Если запись уже существовала, обновляем её значение
+                if not created:
+                    rating.value = value
+                    rating.save()
+                    
                 return redirect('place_detail', place_id=place.id)
     else:
         comment_form = CommentForm()

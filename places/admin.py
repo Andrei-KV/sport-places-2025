@@ -2,7 +2,12 @@ from django.contrib import admin
 from .models import Place, PendingPlace, Photo, Category
 
 
-admin.site.register(Place)
+@admin.register(Place)
+class PlaceAdmin(admin.ModelAdmin):
+    list_display = ['category', 'name', 'user']
+    list_filter = ['category']
+    list_display_links = ['name']
+
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
