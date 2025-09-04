@@ -41,7 +41,8 @@ def category_detail(request, category_slug):
     category.save()
 
     # Получаем все площадки, относящиеся к этой категории
-    places = category.places.all()
+    # и сразу аннотируем их средним рейтингом
+    places = category.places.all().annotate(average_rating=models.Avg('ratings__value'))
 
     # Создаем карту с маркерами для всех площадок
     place_map = None
@@ -136,11 +137,14 @@ def category_detail(request, category_slug):
             ).add_to(m)
 
         place_map = m._repr_html_()
-
+    
+    # Добавляем все категории в контекст для выпадающего списка
+    all_categories = Category.objects.all()
     context = {
         'current_category': category,
         'places': places,
         'place_map': place_map,
+        'all_categories': all_categories,
     }
     return render(request, 'places/category_detail.html', context)
 
@@ -248,7 +252,7 @@ def place_detail(request, place_id):
     # Создаем карту
     place_map = None # Инициализируем переменную
     if place.latitude and place.longitude:
-        m = folium.Map(location=[place.latitude, place.longitude], zoom_start=15)
+        m = folium.Map(location=[place.latitude, place.longitude], zoom_start=12)
         folium.Marker(
             [place.latitude, place.longitude],
             tooltip=place.name

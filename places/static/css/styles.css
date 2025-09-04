@@ -216,7 +216,7 @@ footer {
 .card-list {
     display: grid;
     gap: 20px;
-    padding: 0 0 20px 0;
+    padding: 20px 0 20px 0;
 }
 
 .category-list {
@@ -235,7 +235,6 @@ footer {
 
 /* Стили для контейнера, который будет управлять отображением */
 .pagination-container {
-    overflow: hidden; /* Скрывает контент, который выходит за пределы */
     position: relative;
     width: 100%;
     height: auto; /* Высота подстраивается под контент */
@@ -288,14 +287,10 @@ footer {
 .card {
     border: 1px solid #e0e0e0;
     border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .card:hover {
-    transform: scale(1.02);
-    /* box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); */
+    box-shadow: 0 4px 20px rgba(44, 62, 80, 1);
 }
 
 .card a {
@@ -308,6 +303,8 @@ footer {
     height: 200px;
     object-fit: cover;
     display: block;
+    overflow: hidden;
+    border-radius: 8px 8px 0 0;
 }
 
 .placeholder-image {
@@ -337,20 +334,17 @@ footer {
 .section-title {
     text-align: left; /* Aligns the text to the left */
     text-transform: uppercase; /* Converts all text to uppercase */
-    margin-bottom: 20px;
+    margin-bottom: 0px;
 }
 
 .category-card {
     position: relative;
     border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s;
     aspect-ratio: 16 / 9;
 }
 
 .category-card:hover {
-    transform: scale(1.02);
+    box-shadow: 0 4px 20px rgba(44, 62, 80, 1);
 }
 
 .category-image {
@@ -359,7 +353,9 @@ footer {
     object-fit: cover;
     filter: brightness(0.5);
     image-rendering: auto;
+    border-radius: 8px;
 }
+
 
 .category-overlay {
     position: absolute;
@@ -379,11 +375,12 @@ footer {
     margin: 0;
     color: #ecf0f1;
     font-size: 1.5em;
+    /* text-transform: uppercase; */
     text-shadow: 1px 1px 3px rgb(0, 0, 0);
 }
 
 .category-count {
-    font-size: 0.9em;
+    font-size: 1em;
     font-weight: lighter;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
 }
@@ -400,11 +397,12 @@ footer {
     padding: 10px 20px;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1em;
 }
 
 #show-all-btn:hover {
-    background-color: #0056b3;
+    box-shadow: 0 4px 20px rgba(44, 62, 80, 1);
 }
 
 /*==================================
@@ -481,8 +479,6 @@ footer {
     border: 1px solid #ccc;
     border-radius: 8px;
     overflow: hidden;
-    margin-top: 20px;
-    margin-bottom: 20px;
 }
 
 .map-container iframe {
@@ -497,6 +493,7 @@ footer {
 .category-page-wrapper {
     display: flex;
     gap: 20px;
+    min-height: calc(100vh - 100px);
 }
 
 .category-list-container {
@@ -516,50 +513,93 @@ footer {
     margin: 0;
 }
 
+/* Стили для выпадающего списка */
+.category-dropdown-wrapper {
+    position: relative;
+}
+
+#category-select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: transparent;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 8px 30px 8px 15px;
+    font-size: 1em;
+    cursor: pointer;
+    outline: none;
+    font-family: 'Montserrat', sans-serif;
+    color: #2c3e50;
+    /* Убираем стрелку в IE/Edge */
+    -ms-expand: none;
+}
+
+#category-select:hover {
+    border-color: #2c3e50;
+}
+
+/* Добавляем свою стрелку */
+.category-dropdown-wrapper::after {
+    content: '\25BC';
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    font-size: 0.8em;
+    color: #2c3e50;
+    pointer-events: none;
+}
+
+/* Добавляем зазоры между карточками с площадками */
+.place-list-category {
+    display: grid;
+    gap: 20px;
+    padding: 0;
+}
+
 .place-list-scrollable {
     flex: 1;
-    overflow-y: auto;
-    padding-right: 15px;
-    height: calc(100vh - 200px);
+    /* overflow-y: auto; */
+    height: auto;
 }
 
 .fixed-map {
     width: 60%;
-    height: calc(100vh - 100px);
+    height: 100%; 
     position: sticky;
     top: 60px;
 }
 
-.place-card-mini {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    overflow: hidden;
-    transition: box-shadow 0.2s;
+/* Удаляем старые стили для карточек */
+.place-card-mini, .place-photo-mini, .place-info-mini {
+    display: none;
 }
 
-.place-card-mini:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+/* Стили для карточек */
+.card:hover {
+    transform: none; /* Убираем увеличение при наведении */
+    box-shadow: 0 4px 20px rgba(44, 62, 80, 1);
 }
 
-.place-photo-mini {
-    flex-shrink: 0;
-    width: 100px;
-    height: 100px;
-}
 
-.place-photo-mini img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+@media (max-width: 768px) {
+    .category-page-wrapper {
+        flex-direction: column;
+    }
+    .category-list-container, .fixed-map {
+        width: 100%;
+        padding-right: 0;
+    }
+    .place-list-scrollable {
+        height: auto;
+    }
+    .fixed-map {
+        position: relative;
+        height: 300px;
+        top: 0;
+    }
 }
-
-.place-info-mini {
-    padding: 10px;
-}
-
 /*==================================
   Custom Map Styles
 ==================================*/
@@ -606,18 +646,17 @@ footer {
     .category-page-wrapper {
         flex-direction: column;
     }
-
     .category-list-container, .fixed-map {
         width: 100%;
+        padding-right: 0;
     }
-
     .place-list-scrollable {
         height: auto;
     }
-
     .fixed-map {
         position: relative;
         height: 300px;
+        top: 0;
     }
 }
 

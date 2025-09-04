@@ -1,18 +1,18 @@
 {% extends 'base/base.html' %}
 {% load static %}
-{% load my_filters %}
+{% load filters %}
 
-{% block title %}{{ category.name }}{% endblock %}
+{% block title %}{{ current_category.name }}{% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="category-page-wrapper">
         <div class="category-list-container">
             <div class="category-header">
-                <h1 class="current-category-title">{{ category.name }}</h1>
+                <h1 class="current-category-title">{{ current_category.name }}</h1>
                 <div class="category-dropdown-wrapper">
                     <select id="category-select" onchange="window.location.href = this.value;">
-                        <option value="#">Изменить категорию</option>
+                        <option value="#" disabled {% if not category.name %}selected{% endif %}>Изменить категорию</option>
                         {% for cat in all_categories %}
                             <option value="{% url 'category_detail' cat.slug %}" {% if cat.slug == category.slug %}selected{% endif %}>
                                 {{ cat.name }}
@@ -22,6 +22,7 @@
                 </div>
             </div>
             <div class="place-list-scrollable">
+                <div class="card-list place-list-category">
                 {% if places %}
                     {% for place in places %}
                         <div class="card">
@@ -52,6 +53,7 @@
                 {% else %}
                     <p>В этой категории пока нет площадок.</p>
                 {% endif %}
+                </div>
             </div>
         </div>
         <div class="map-container fixed-map">

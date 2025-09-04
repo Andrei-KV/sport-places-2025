@@ -47,7 +47,7 @@
         </div>
         {% if other_categories %}
             <div class="show-all-btn-container">
-                <button id="show-all-btn">Показать все категории</button>
+                <button id="show-all-btn">Показать все</button>
             </div>
         {% endif %}
     </div>
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 showAllBtn.textContent = 'Скрыть';
             } else {
                 otherCategories.style.display = 'none';
-                showAllBtn.textContent = 'Показать все категории';
+                showAllBtn.textContent = 'Показать все';
             }
         });
     }
