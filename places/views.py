@@ -205,42 +205,40 @@ def edit_place(request, place_id):
     place = get_object_or_404(Place, pk=place_id)
 
     if request.method == 'POST':
-        form = PlaceForm(request.POST)
+        # Используем PlaceForm для валидации данных, которые пользователь может изменить
+        form = PlaceForm(request.POST, request.FILES) 
         if form.is_valid():
-            pending_submission = form.save(commit=False)
-            pending_submission.user = request.user
-            pending_submission.action = 'edit'
-            pending_submission.original_place = place
-            
-            # Чтобы сохранить оригинальное название
-            # Так как не передаётся пользователем
-            # Теперь, даже если поле name не будет отправлено с формы, 
-            # мы берем его из объекта place и сохраняем в заявке 
-            # pending_submission, гарантируя, что оно не потеряется.
-            pending_submission.name = place.name
-            pending_submission.save()
-            # Сохранение координат
-            pending_submission.latitude = form.cleaned_data['latitude']
-            pending_submission.longitude = form.cleaned_data['longitude']
+            # Создаем новую заявку на модерацию, но не сохраняем ее сразу
+            pending_submission = PendingPlace(
+                user=request.user,
+                action='edit',
+                original_place=place,
+                name=place.name, # Берем название из оригинальной площадки (нельзя менять)
+                description=form.cleaned_data['description'],
+                latitude=form.cleaned_data['latitude'],
+                longitude=form.cleaned_data['longitude'],
+                category=place.category # Берем категорию из оригинальной площадки (нельзя менять)
+            )
             pending_submission.save()
 
-            # Сохраняем загруженные фото для заявки на редактирование
+            # Сохраняем загруженные фото для новой заявки
             for f in request.FILES.getlist('photos'):
                 Photo.objects.create(pending_place=pending_submission, image=f)
-# Будем сохранять фотографии, связанные с заявками на модерацию (PendingPlace), 
-# а не с одобренными площадками (Place). 
-# Это правильно, так как администратор должен видеть фотографии, которые он одобряет.                
+
             return redirect('home')
     else:
-        form = PlaceForm(initial={'name': place.name, 'description': place.description})
+        # При GET-запросе инициализируем форму с данными, которые можно редактировать
+        form = PlaceForm(initial={
+            'description': place.description,
+            'latitude': place.latitude,
+            'longitude': place.longitude
+        })
 
     context = {'form': form, 'place': place}
     return render(request, 'places/edit_place.html', context)
 
 
-
 @login_required # Добавим этот декоратор, чтобы оставлять комментарии могли только авторизованные пользователи
-@login_required 
 def place_detail(request, place_id):
     place = get_object_or_404(Place, pk=place_id)
     comments = place.comments.all().order_by('-created_at')
@@ -249,14 +247,97 @@ def place_detail(request, place_id):
     # Получаем среднюю оценку
     average_rating = place.ratings.aggregate(models.Avg('value'))['value__avg']
 
+
     # Создаем карту
     place_map = None # Инициализируем переменную
     if place.latitude and place.longitude:
         m = folium.Map(location=[place.latitude, place.longitude], zoom_start=12)
+
+        yandex_maps_url = f"https://yandex.ru/maps/?rtext=~{place.latitude},{place.longitude}&z=15"
+        first_photo = place.first_photo
+        if first_photo:
+            # Получаем абсолютный URL для фото, используя request
+            photo_url = request.build_absolute_uri(first_photo.image.url)
+                # HTML-содержимое для iframe с абсолютным URL
+            iframe_html = f"""
+                    <style>
+                        body, html {{
+                            margin: 0 !important;
+                            padding: 0 !important;
+                        }}
+                    </style>
+                    <div style="
+                        display: flex; 
+                        flex-direction: column; 
+                        width: 100%; 
+                        height: 100%; 
+                        box-sizing: border-box; 
+                        font-family: Arial, sans-serif;
+                    ">
+                        <div style="
+                            position: relative; 
+                            width: 100%; 
+                            height: 100%; 
+                            overflow: hidden; 
+                            border-radius: 4px;
+                        ">
+                            <img src="{photo_url}"
+                                style="
+                                    position: absolute; 
+                                    top: 0; 
+                                    left: 0; 
+                                    width: 100%; 
+                                    height: 100%; 
+                                    object-fit: cover;
+                                "
+                                alt="{place.name} фото">
+                        </div>
+                        
+                        <div style="padding: 10px 10px 0 10px; flex-grow: 1;">
+                            <h3 style="
+                                margin-top: 0; 
+                                margin-bottom: 5px; 
+                                font-size: 1em;
+                                color: #007bff;
+                                text-decoration: none; 
+                                font-weight: bold;
+                            ">{place.name}
+                            </h3>
+                            <a href="{yandex_maps_url}" 
+                                target="_blank"
+                                onclick="return L.DomEvent.stopPropagation(event);" 
+                                style="color: #555; font-size: 0.9em; text-decoration: none;"
+                                >Построить маршрут</a>
+                        </div>
+                    </div>
+                """
+        else:
+            # Если фото нет, отображаем только название и ссылку
+            iframe_html = f"""
+                <h3 style="
+                                margin-top: 0; 
+                                margin-bottom: 5px; 
+                                font-size: 1em;
+                                color: #007bff;
+                                text-decoration: none; 
+                                font-weight: bold;
+                            ">{place.name}
+                            </h3>
+                <a href="{yandex_maps_url}" target="_blank" style="color: #555; font-size: 0.9em; text-decoration: none;">Построить маршрут</a>
+                """
+            
+        # Создаём IFrame с фиксированной шириной и адаптивной высотой
+        iframe = folium.IFrame(html=iframe_html, width="200px", height="auto",)
+            
+            # Popup с максимальной шириной 200px
+        popup = folium.Popup(iframe, max_width="200px", max_height="400px")
+
         folium.Marker(
-            [place.latitude, place.longitude],
-            tooltip=place.name
-        ).add_to(m)
+                [place.latitude, place.longitude],
+                tooltip=place.name,
+                popup=popup
+            ).add_to(m)
+
         place_map = m._repr_html_()
 
     # Обработка форм

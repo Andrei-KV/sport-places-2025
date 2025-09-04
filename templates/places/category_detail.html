@@ -21,6 +21,7 @@
                     </select>
                 </div>
             </div>
+            <p class="category-count">{{ current_category.places.count|pluralize_places }}</p>
             <div class="place-list-scrollable">
                 <div class="card-list place-list-category">
                 {% if places %}

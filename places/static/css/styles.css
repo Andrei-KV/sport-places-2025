@@ -164,7 +164,7 @@ h1, h2, h3 {
 }
 
 .dropdown-content a {
-    color: white;
+    color: #ecf0f1;
 }
 
 /*==================================
@@ -368,7 +368,7 @@ footer {
     justify-content: flex-end;
     align-items: flex-start;
     padding: 15px;
-    color: white;
+    color: #ecf0f1;
 }
 
 .category-title {
@@ -392,7 +392,7 @@ footer {
 
 #show-all-btn {
     background-color: #2c3e50;
-    color: white;
+    color: #ecf0f1;
     border: none;
     padding: 10px 20px;
     border-radius: 5px;
@@ -440,21 +440,21 @@ footer {
 .photo-gallery-wrapper {
     min-height: 220px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    border: 1px dashed #ccc;
-    border-radius: 8px;
     margin-bottom: 20px;
-    background-color: #f9f9f9;
-    color: #888;
+    /* background-color: #f9f9f9;
+    color: #888; */
     font-style: italic;
 }
 
 .photo-gallery {
     display: flex;
     overflow-x: auto;
+    height: 100%;
     gap: 10px;
-    padding: 10px;
+    padding: 20px;
     width: 100%;
     box-sizing: border-box;
 }
@@ -511,6 +511,10 @@ footer {
 
 .current-category-title {
     margin: 0;
+}
+
+.category-list-container .category-count {
+    margin: 0 0 20px 0;
 }
 
 /* Стили для выпадающего списка */
@@ -660,3 +664,356 @@ footer {
     }
 }
 
+/*==================================
+  Place Detail Page
+==================================*/
+.place-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.place-header h1 {
+    margin: 0;
+}
+
+.edit-btn {
+    background-color: #2c3e50;
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+    gap: 8px; 
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1em;
+    color: #ecf0f1;
+}
+
+.edit-btn svg {
+    color: #ecf0f1;
+    width: 20px;
+    height: 20px;
+}
+
+.edit-btn:hover {
+    box-shadow: 0 4px 20px rgba(44, 62, 80, 1);
+    color: #ecf0f1;
+}
+.place-rating-section {
+    margin-top: 40px;
+}
+
+/* Новый стиль для навигационной цепочки */
+.breadcrumbs {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.breadcrumbs a {
+    color: #2c3e50;
+    text-decoration: none;
+}
+
+.breadcrumbs a:hover {
+    color: #3498db;
+    text-decoration: underline;
+}
+
+.forms-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.rating-form, .comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    /* max-width: 400px; */
+}
+.rating-form .form-group {
+    max-width: 200px;
+    align-items: center;
+}
+
+.form-group label {
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+/* Стили для кнопок форм */
+.submit-btn {
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1em;
+    transition: box-shadow 0.2s;
+    width: 200px; 
+    text-align: center;
+}
+
+.submit-btn:hover {
+    box-shadow: 0 4px 20px rgba(44, 62, 80, 1);
+}
+
+/* Стили для полей ввода и select */
+input[type="text"], textarea, select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+    font-family: 'Montserrat', sans-serif;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Стили для выпадающего списка оценки */
+select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: transparent;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 8px 15px;
+    font-size: 1em;
+    cursor: pointer;
+    outline: none;
+    color: #2c3e50;
+    -ms-expand: none;
+}
+
+/* Стили для комментариев */
+.comments-list {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.comment-item {
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 15px;
+}
+
+.comment-user {
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.comment-date {
+    font-size: 0.8em;
+    color: #888;
+    margin-left: 5px;
+}
+
+.comment-text {
+    margin: 5px 0 0 0;
+}
+
+/* Стили для фотогалереи */
+/* Большое фото над галереей */
+.main-photo-display {
+    width: 100%;
+    height: 400px; /* Фиксированная высота для большого фото */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    overflow: hidden; /* Скрываем части изображения, если оно не вписывается */
+}
+
+.main-photo-display img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* Изменено на contain, чтобы фото всегда было видно целиком */
+    border-radius: 8px;
+}
+
+.main-photo-display .no-photo-placeholder {
+    font-size: 1.5em;
+    /* color: #888; */
+}
+
+.photo-gallery-container {
+    position: relative;
+    width: 100%;
+    margin-bottom: 20px;
+    overflow: hidden; 
+}
+
+.photo-gallery {
+    display: flex;
+    overflow-x: scroll;
+    scroll-behavior: smooth;
+    gap: 10px;
+    padding: 0 10px;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    margin-top: 10px; /* Небольшой отступ от большого фото */
+}
+
+.photo-gallery::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+.photo-card {
+    flex-shrink: 0;
+    width: calc(25% - 7.5px);
+    height: 150px; /* Уменьшаем высоту миниатюр */
+    border-radius: 8px;
+    overflow: visible; /* Важно: overflow: visible для тени */
+    cursor: pointer; /* Курсор-указатель для миниатюр */
+    position: relative; /* Для правильного отображения box-shadow */
+}
+
+.photo-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    transition: transform 0.2s ease;
+}
+
+.photo-card:hover img {
+    transform: scale(1.05); /* Легкое увеличение при наведении */
+}
+
+.photo-card:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Тень при наведении */
+    z-index: 5; /* Чтобы тень отображалась поверх соседних карточек */
+}
+
+@media (max-width: 992px) {
+    .photo-card {
+        width: calc(33.33% - 6.67px);
+    }
+}
+
+@media (max-width: 768px) {
+    .photo-card {
+        width: calc(50% - 5px);
+    }
+    .main-photo-display {
+        height: 300px; /* Меньшая высота на планшетах */
+    }
+}
+
+@media (max-width: 480px) {
+    .photo-card {
+        width: calc(100% - 5px);
+    }
+    .main-photo-display {
+        height: 250px; /* Еще меньшая высота на мобильных */
+    }
+}
+
+/* Стрелки навигации */
+.nav-arrow {
+    position: absolute;
+    top: 50%; /* Центрируем относительно контейнера */
+    transform: translateY(-50%);
+    background: rgba(44, 62, 80, 0.7);
+    color: #ecf0f1;
+    border: none;
+    cursor: pointer; /* Курсор-указатель */
+    padding: 10px;
+    border-radius: 50%;
+    z-index: 10;
+    transition: background-color 0.3s;
+}
+
+.nav-arrow:hover {
+    background: rgba(44, 62, 80, 0.9);
+}
+
+.prev-arrow {
+    left: 0;
+}
+
+.next-arrow {
+    right: 0;
+}
+
+/* Стили для точек пагинации */
+.pagination-dots {
+    text-align: center;
+    margin-top: 15px; /* Отступ от галереи */
+}
+
+/*==================================
+  Place Edit Page Specific Styles
+==================================*/
+.place-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Устанавливаем базовый отступ между основными элементами формы */
+    max-width: 600px; /* Ограничиваем ширину формы */
+    margin: 20px auto; /* Центрируем форму на странице */
+    padding: 25px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.place-form .form-group {
+    margin-bottom: 0; /* Убираем стандартный нижний отступ, так как используем gap */
+}
+
+.form-spacer {
+    height: 10px; /* Интервал между группами полей */
+}
+
+/* Стили для кастомизированной кнопки загрузки файлов */
+.file-upload-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Отступ между кнопкой и счетчиком файлов */
+    flex-wrap: wrap; /* Позволяет элементам переноситься на новую строку на маленьких экранах */
+}
+
+.file-upload-input {
+    display: none; /* Скрываем стандартный input file */
+}
+
+.file-upload-button {
+    /* Использует стили .submit-btn, но можно добавить специфичные */
+    padding: 10px 15px; /* Немного уменьшим паддинг, если кнопка должна быть меньше */
+    width: auto; /* Автоматическая ширина для кнопки "Добавить" */
+    text-align: center;
+    cursor: pointer;
+}
+
+.file-upload-count {
+    color: #888;
+    font-size: 0.9em;
+    flex-grow: 1; /* Позволяет тексту занимать оставшееся пространство */
+}
+
+/* Центрируем кнопку "Отправить на модерацию" */
+.place-form .submit-btn:last-child {
+    align-self: center; /* Центрируем последнюю кнопку submit */
+    margin-top: 10px; /* Дополнительный отступ сверху */
+}

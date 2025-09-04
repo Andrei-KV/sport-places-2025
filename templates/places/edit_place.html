@@ -3,30 +3,74 @@
 
 {% block title %}Редактировать {{ pending_submission.original_place.name }}{% endblock %}
 
+
 {% block content %}
-<h2>Редактировать площадку</h2>
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    <div>
-        <label for="id_name">Название площадки:</label>
-        <input type="text" name="name" id="id_name" value="{{ pending_submission.name }}">
-    </div>
-    <div>
-        <label for="id_description">Описание:</label>
-        <textarea name="description" id="id_description">{{ pending_submission.description }}</textarea>
-    </div>
-    <div>
-        <label for="id_latitude">Широта:</label>
-        <input type="text" name="latitude" id="id_latitude" value="{{ pending_submission.latitude }}">
-    </div>
-    <div>
-        <label for="id_longitude">Долгота:</label>
-        <input type="text" name="longitude" id="id_longitude" value="{{ pending_submission.longitude }}">
-    </div>
-    <div>
-        <label for="id_photos">Добавить фото:</label>
-        <input type="file" name="photos" id="id_photos" multiple>
-    </div>
-    <button type="submit">Отправить на модерацию</button>
-</form>
+<div class="container">
+    <h2 class="section-title">Редактировать площадку</h2>
+    <form method="post" enctype="multipart/form-data" class="place-form">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="id_name">Название площадки:</label>
+            <p>{{ place.name }}</p>
+            <input type="hidden" name="name" id="id_name" value="{{ place.name }}">
+        </div>
+        <div class="form-group">
+            <label for="id_category">Категория:</label>
+            <p>{{ place.category.name }}</p>
+            <input type="hidden" name="category" id="id_category" value="{{ place.category.pk }}">
+        </div>
+        <div class="form-group">
+            <label for="id_description">Описание:</label>
+            {{ form.description }}
+        </div>
+        {# Добавляем пустые div для создания интервалов #}
+        <div class="form-spacer"></div> 
+
+        <div class="form-group">
+            <label for="id_latitude">Широта:</label>
+            {{ form.latitude }}
+        </div>
+        {# Добавляем пустые div для создания интервалов #}
+        <div class="form-spacer"></div>
+
+        <div class="form-group">
+            <label for="id_longitude">Долгота:</label>
+            {{ form.longitude }}
+        </div>
+        {# Добавляем пустые div для создания интервалов #}
+        <div class="form-spacer"></div>
+
+        <div class="form-group">
+            <label>Добавить фото:</label> {# Убираем 'for' из label, так как input будет скрыт #}
+            <div class="file-upload-wrapper">
+                <input type="file" name="photos" id="id_photos" multiple class="file-upload-input">
+                <label for="id_photos" class="file-upload-button submit-btn">Добавить</label>
+                <span id="file-count" class="file-upload-count">Файлы не выбраны</span>
+            </div>
+        </div>
+        {# Добавляем пустые div для создания интервалов #}
+        <div class="form-spacer"></div>
+
+        <button type="submit" class="submit-btn">Отправить на модерацию</button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('id_photos');
+    const fileCountSpan = document.getElementById('file-count');
+
+    if (fileInput && fileCountSpan) {
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                fileCountSpan.textContent = `Выбрано: ${this.files.length}`;
+                fileCountSpan.style.color = '#2c3e50'; // Цвет текста при выборе файлов
+            } else {
+                fileCountSpan.textContent = 'Файлы не выбраны';
+                fileCountSpan.style.color = '#888'; // Возвращаем серый цвет, если файлы не выбраны
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

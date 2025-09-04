@@ -4,17 +4,47 @@
 {% block title %}{{ place.name }}{% endblock %}
 
 {% block content %}
-    <h1>{{ place.name }}</h1>
+<div class="container">
+    <p class="breadcrumbs">
+        <a href="{% url 'category_detail' place.category.slug %}">
+            &lt; {{ place.category.name }}
+        </a>
+    </p>
+    
+    <div class="place-header">
+        <h1>{{ place.name }}</h1>
+        <a href="{% url 'edit_place' place.id %}" class="edit-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit-2">
+                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+            </svg>
+            <span>Редактировать место</span>
+        </a>
+    </div>
     <p>{{ place.description }}</p>
 
-    {# --- Секция для фотогалереи --- #}
+    {# --- Секция для фотогалереи с пагинацией --- #}
     <h2>Фотографии</h2>
     <div class="photo-gallery-wrapper">
+        <div class="main-photo-display">
+            {% if photos %}
+                <img id="main-place-photo" src="{{ photos.0.image.url }}" alt="{{ place.name }}">
+            {% else %}
+                <div class="no-photo-placeholder">Нет фото</div>
+            {% endif %}
+        </div>
+        
         {% if photos %}
-            <div class="photo-gallery">
-                {% for photo in photos %}
-                    <img src="{{ photo.image.url }}" alt="{{ place.name }}">
-                {% endfor %}
+            <div class="photo-gallery-container">
+                <div class="photo-gallery">
+                    {% for photo in photos %}
+                        <div class="photo-card" data-full-src="{{ photo.image.url }}">
+                            <img src="{{ photo.image.url }}" alt="{{ place.name }}">
+                        </div>
+                    {% endfor %}
+                </div>
+                <button class="nav-arrow prev-arrow">&#10094;</button>
+                <button class="nav-arrow next-arrow">&#10095;</button>
+                <div class="pagination-dots photo-dots"></div>
             </div>
         {% else %}
             <div class="no-photos-message">
@@ -30,33 +60,178 @@
             {{ place_map|safe }}
         </div>
     {% endif %}
-    
-    <h2>Рейтинг: {{ average_rating|floatformat:1 }} / 5</h2>
 
-    <h3>Комментарии:</h3>
-    {% for comment in comments %}
-        <div>
-            <strong>{{ comment.user.username }}</strong> ({{ comment.created_at|date:"d.m.Y H:i" }}):
-            <p>{{ comment.text }}</p>
+    {# --- Секция с рейтингом и комментариями --- #}
+    <div class="place-rating-section">
+        <h2 class="section-title">Рейтинг: {{ average_rating|floatformat:1 }} / 5</h2>
+        <h2>Комментарии:</h2>
+        <div class="comments-list">
+            {% for comment in comments %}
+                <div class="comment-item">
+                    <strong class="comment-user">{{ comment.user.username }}</strong> 
+                    <span class="comment-date">{{ comment.created_at|date:"d.m.Y H:i" }}</span>
+                    <p class="comment-text">{{ comment.text }}</p>
+                </div>
+            {% empty %}
+                <p>Комментариев пока нет. Будьте первыми!</p>
+            {% endfor %}
         </div>
+
         <hr>
-    {% empty %}
-        <p>Комментариев пока нет. Будьте первыми!</p>
-    {% endfor %}
 
-    <hr>
+        <div class="forms-wrapper">
+            {# --- Форма для оценки площадки (перемещена выше) --- #}
+            <h2>Оценить площадку</h2>
+            <form method="post" class="rating-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    {{ rating_form.value }}
+                </div>
+                <button type="submit" name="rating_submit" class="submit-btn">Оценить</button>
+            </form>
+
+            
+        
+            {# --- Форма для комментария --- #}
+            <h2>Оставить комментарий</h2>
+            <form method="post" class="comment-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    {{ comment_form.text }}
+                </div>
+                <button type="submit" name="comment_submit" class="submit-btn">Отправить</button>
+            </form>
+        </div>
+    </div>
+
     
-    <h2>Оставить комментарий</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ comment_form.as_p }}
-        <button type="submit" name="comment_submit">Отправить</button>
-    </form>
+    
+</div>
 
-    <h2>Оценить площадку</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ rating_form.as_p }}
-        <button type="submit" name="rating_submit">Оценить</button>
-    </form>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const gallery = document.querySelector('.photo-gallery');
+    const mainPhoto = document.getElementById('main-place-photo');
+    const cards = gallery ? gallery.querySelectorAll('.photo-card') : [];
+    const dotsContainer = document.querySelector('.photo-dots');
+    const prevArrow = document.querySelector('.prev-arrow');
+    const nextArrow = document.querySelector('.next-arrow');
+    
+    // Определяем количество карточек на странице на основе ширины
+    const getCardsPerPage = () => {
+        if (window.innerWidth <= 480) return 1;
+        if (window.innerWidth <= 768) return 2;
+        if (window.innerWidth <= 992) return 3;
+        return 4;
+    };
+    
+    if (cards.length > 0) {
+        let cardsPerPage = getCardsPerPage();
+        let numDots = Math.ceil(cards.length / cardsPerPage);
+        let currentPage = 0;
+
+        // Функция для обновления точек пагинации
+        const updateDots = () => {
+            dotsContainer.innerHTML = ''; // Очищаем существующие точки
+            numDots = Math.ceil(cards.length / cardsPerPage); // Пересчитываем количество точек
+            for (let i = 0; i < numDots; i++) {
+                const dot = document.createElement('span');
+                dot.classList.add('dot');
+                if (i === currentPage) dot.classList.add('active-dot');
+                dot.dataset.page = i;
+                dotsContainer.appendChild(dot);
+            }
+        };
+
+        // Инициализация точек
+        updateDots();
+
+        // Показываем/скрываем стрелки
+        const updateArrows = () => {
+            if (cards.length > cardsPerPage) {
+                prevArrow.style.display = 'block';
+                nextArrow.style.display = 'block';
+                dotsContainer.style.display = 'block';
+            } else {
+                prevArrow.style.display = 'none';
+                nextArrow.style.display = 'none';
+                dotsContainer.style.display = 'none';
+            }
+        };
+
+        const goToPage = (pageIndex) => {
+            // Убеждаемся, что pageIndex находится в допустимых пределах
+            if (pageIndex < 0) pageIndex = numDots - 1;
+            if (pageIndex >= numDots) pageIndex = 0;
+
+            const cardWidth = cards[0].offsetWidth; // Ширина одной карточки
+            const gap = 10; // Отступ между карточками
+            
+            // Вычисляем позицию прокрутки
+            // Учитываем ширину карточки и отступы
+            gallery.scrollLeft = pageIndex * (cardWidth * cardsPerPage + gap * (cardsPerPage - 1));
+            
+            dotsContainer.querySelectorAll('.dot').forEach((dot, index) => {
+                dot.classList.toggle('active-dot', index === pageIndex);
+            });
+            currentPage = pageIndex;
+        };
+        
+        // Обработчики для стрелок
+        prevArrow.addEventListener('click', () => {
+            const newPage = (currentPage > 0) ? currentPage - 1 : numDots - 1;
+            goToPage(newPage);
+        });
+        
+        nextArrow.addEventListener('click', () => {
+            const newPage = (currentPage < numDots - 1) ? currentPage + 1 : 0;
+            goToPage(newPage);
+        });
+
+        // Обработчики для точек
+        dotsContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('dot')) {
+                const pageIndex = parseInt(e.target.dataset.page);
+                goToPage(pageIndex);
+            }
+        });
+
+        // Обработчики клика по миниатюрам для отображения в большом формате
+        cards.forEach(card => {
+            card.addEventListener('click', function() {
+                const fullSrc = this.dataset.fullSrc;
+                if (mainPhoto) {
+                    mainPhoto.src = fullSrc;
+                }
+            });
+        });
+        
+        // Пересчитываем и обновляем при изменении размера окна
+        window.addEventListener('resize', () => {
+            cardsPerPage = getCardsPerPage();
+            updateDots(); // Обновляем точки при изменении размера
+            goToPage(0); // Переходим на первую страницу после изменения размера
+            updateArrows();
+        });
+
+        // Инициализируем при загрузке
+        if (mainPhoto) {
+            // При загрузке страницы, убедитесь, что первое фото выбрано
+            // или что-то отображается, если фото нет
+            if (cards.length > 0) {
+                 mainPhoto.src = cards[0].dataset.fullSrc;
+            } else {
+                // Если нет фото, можно показать заглушку
+                // Это уже обрабатывается в HTML, но можно перепроверить
+                const mainPhotoDisplay = document.querySelector('.main-photo-display');
+                if (mainPhotoDisplay && !mainPhoto) { // если mainPhoto не существует (нет img)
+                    mainPhotoDisplay.innerHTML = '<div class="no-photo-placeholder">Нет фото</div>';
+                }
+            }
+        }
+        goToPage(0);
+        updateArrows();
+    }
+});
+</script>
 {% endblock %}
