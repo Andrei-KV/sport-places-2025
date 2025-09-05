@@ -23,7 +23,7 @@ main {
 }
 
 a {
-    color: #2c3e50;;
+    color: #2c3e50;
     text-decoration: none;
     transition: color 0.3s ease;
 }
@@ -66,17 +66,22 @@ h1, h2, h3 {
     padding: 10px 20px;
 }
 
-.header.smaller .logo-text {
-    font-size: 1.4em;
+/* Обновленный блок для логотипа */
+.logo-link {
+    display: flex; /* Используем flexbox для выравнивания */
+    align-items: center; /* Центрируем элементы по вертикали */
+    gap: 10px; /* Добавляем отступ между лого и текстом */
+    text-decoration: none;
 }
 
-.header.smaller .main-nav a,
-.header.smaller .logout-button {
-    font-size: 0.9em;
+.logo-img {
+    height: 40px; /* Задайте нужную высоту для логотипа */
+    width: auto;
+    transition: all 0.3s ease-in-out;
 }
 
-.header.smaller .user-info-small {
-    font-size: 0.7em;
+.header.smaller .logo-img {
+    height: 30px; /* Уменьшаем размер логотипа при скролле */
 }
 
 .logo-text {
@@ -84,6 +89,11 @@ h1, h2, h3 {
     font-weight: bold;
     color: #ecf0f1;
     text-decoration: none;
+    transition: all 0.3s ease-in-out;
+}
+
+.header.smaller .logo-text {
+    font-size: 1.4em;
 }
 
 .main-nav .nav-list {

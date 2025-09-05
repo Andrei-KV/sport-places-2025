@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Спорт-площадки{% endblock %}</title>
     {% load static %}
+    <link rel="icon" href="{% static 'img/favicon.ico' %}" type="image/x-icon">
+    <link rel="shortcut icon" href="{% static 'img/favicon.ico' %}" type="image/x-icon">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
@@ -16,7 +19,7 @@
         <div class="container header-container">
             <div class="logo">
                 <a href="{% url 'home' %}" class="logo-link">
-                    <div class="logo-icon"></div>
+                    <img src="{% static 'img/logo.png' %}" alt="Sport Places Logo" class="logo-img">
                     <span class="logo-text">Sport-Places</span>
                 </a>
             </div>
