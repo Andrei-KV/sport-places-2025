@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=sport_places_2025
+      - POSTGRES_USER=dron
+      - POSTGRES_PASSWORD=1765362
+    restart: always
+
+  web:
+    build: .
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - .:/app
+      - static_volume:/app/static
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    restart: always
+    environment:
+      - DATABASE_URL=postgres://dron:1765362@db:5432/sport_places_2025
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
