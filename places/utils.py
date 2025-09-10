@@ -39,9 +39,9 @@ def generate_place_map(request, places):
                     <a href="{yandex_maps_url}" target="_blank" style="font-size: 0.9em; color: #555;">Построить маршрут</a>
                 </div>
             """
-
-        iframe = folium.IFrame(html=iframe_html, width=220, height=200)
-        popup = folium.Popup(iframe, max_width=220)
+            
+        iframe = folium.IFrame(html=iframe_html, width="200px", height="auto",)
+        popup = folium.Popup(iframe, max_width="200px", max_height="400px")
 
         folium.Marker(
             [place.latitude, place.longitude],
@@ -87,8 +87,8 @@ def generate_single_place_map(request, place):
             </div>
         """
 
-    iframe = folium.IFrame(html=iframe_html, width=220, height=200)
-    popup = folium.Popup(iframe, max_width=220)
+    iframe = folium.IFrame(html=iframe_html, width="200px", height="auto",)
+    popup = folium.Popup(iframe, max_width="200px", max_height="400px")
 
     folium.Marker(
         [place.latitude, place.longitude],
