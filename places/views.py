@@ -1,386 +1,192 @@
 from django.db import models
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Place, PendingPlace, Comment, Rating, Photo, Category
+from django.views.generic import TemplateView, DetailView, CreateView
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from .models import Place, PendingPlace, Comment, Rating, Photo, Category
 from .forms import PlaceForm, CommentForm, RatingForm
-import folium
+from .utils import generate_place_map, generate_single_place_map
 
+class HomePageView(TemplateView):
+    template_name = 'places/home.html'
 
-def home_page(request):
-    # Получаем 8 самых популярных категорий
-    popular_categories = Category.objects.order_by('-view_count')[:8]
-    # Получаем остальные категории в алфавитном порядке
-    other_categories = Category.objects.exclude(
-        pk__in=popular_categories.values('pk')
-    ).order_by('name')
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        popular_categories = Category.objects.order_by('-view_count')[:8]
+        other_categories = Category.objects.exclude(
+            pk__in=popular_categories.values('pk')
+        ).order_by('name')
+        popular_places = Place.objects.annotate(
+            average_rating=models.Avg('ratings__value')
+        ).filter(
+            average_rating__isnull=False
+        ).order_by(models.F('average_rating').desc(nulls_last=True))[:8]
 
-    # Получаем 8 самых популярных площадок по среднему рейтингу
-    #    (Аннотируем каждую площадку средним рейтингом и сортируем по убыванию)
-    popular_places = Place.objects.annotate(
-        average_rating=models.Avg('ratings__value')
-    ).filter(
-        # Не показывать площадки без рейтинга, если это нужно
-        average_rating__isnull=False
-    ).order_by(models.F('average_rating').desc(nulls_last=True))[:8]
-
-    # Контекст, чтобы передавать популярные площадки
-    context = {
-        'popular_categories': popular_categories,
-        'other_categories': other_categories,
-        'popular_places': popular_places,
-    }
-    return render(request, 'places/home.html', context)
-
-def category_detail(request, category_slug):
-    category = get_object_or_404(Category, slug=category_slug)
-    
-    # Увеличиваем счетчик просмотров при каждом посещении
-    category.view_count += 1
-    category.save()
-
-    # Получаем все площадки, относящиеся к этой категории
-    # и сразу аннотируем их средним рейтингом
-    places = category.places.all().annotate(average_rating=models.Avg('ratings__value'))
-
-    # Создаем карту с маркерами для всех площадок
-    place_map = None
-    if places:
-        # Центрируем карту по первой площадке
-        center_lat = places.first().latitude
-        center_lon = places.first().longitude
-        m = folium.Map(location=[center_lat, center_lon], zoom_start=12)
-
-        for place in places:
-            yandex_maps_url = f"https://yandex.ru/maps/?rtext=~{place.latitude},{place.longitude}&z=15"
-            first_photo = place.first_photo
-            place_detail_url = request.build_absolute_uri(reverse('place_detail', args=[place.id]))
-            # Проверяем, существует ли фотография
-            if first_photo:
-                # Получаем абсолютный URL для фото, используя request
-                photo_url = request.build_absolute_uri(first_photo.image.url)
-                
-
-                # HTML-содержимое для iframe с абсолютным URL
-                iframe_html = f"""
-                    <style>
-                        body, html {{
-                            margin: 0 !important;
-                            padding: 0 !important;
-                        }}
-                    </style>
-                    <div style="
-                        display: flex; 
-                        flex-direction: column; 
-                        width: 100%; 
-                        height: 100%; 
-                        box-sizing: border-box; 
-                        font-family: Arial, sans-serif;
-                    ">
-                        <div style="
-                            position: relative; 
-                            width: 100%; 
-                            height: 100%; 
-                            overflow: hidden; 
-                            border-radius: 4px;
-                        ">
-                            <img src="{photo_url}"
-                                style="
-                                    position: absolute; 
-                                    top: 0; 
-                                    left: 0; 
-                                    width: 100%; 
-                                    height: 100%; 
-                                    object-fit: cover;
-                                "
-                                alt="{place.name} фото">
-                        </div>
-                        
-                        <div style="padding: 10px 10px 0 10px; flex-grow: 1;">
-                            <h3 style="
-                                margin-top: 0; 
-                                margin-bottom: 5px; 
-                                font-size: 1em;
-                            ">
-                                <a href="{place_detail_url}" 
-                                    target="_top"
-     onclick="L.DomEvent.stopPropagation(event);"
-                                    style="color: #007bff; text-decoration: none; font-weight: bold;"
-                                >{place.name}</a>
-                            </h3>
-                            <a href="{yandex_maps_url}" 
-                                target="_blank"
-                                onclick="return L.DomEvent.stopPropagation(event);" 
-                                style="color: #555; font-size: 0.9em; text-decoration: none;"
-                                >Построить маршрут</a>
-                        </div>
-                    </div>
-                """
-            else:
-                # Если фото нет, отображаем только название и ссылку
-                iframe_html = f"""
-                <h3 style="margin-bottom: 5px; font-size: 1em;"><a href="{place_detail_url}" target="_parent" style="color: #007bff; text-decoration: none; font-weight: bold;">{place.name}</a></h3>
-                <a href="{yandex_maps_url}" target="_blank" style="color: #555; font-size: 0.9em; text-decoration: none;">Построить маршрут</a>
-                """
-            
-            # Создаём IFrame с фиксированной шириной и адаптивной высотой
-            iframe = folium.IFrame(html=iframe_html, width="200px", height="auto",)
-            
-            # Popup с максимальной шириной 200px
-            popup = folium.Popup(iframe, max_width="200px", max_height="400px")
-
-            folium.Marker(
-                [place.latitude, place.longitude],
-                tooltip=place.name,
-                popup=popup
-            ).add_to(m)
-
-        place_map = m._repr_html_()
-    
-    # Добавляем все категории в контекст для выпадающего списка
-    all_categories = Category.objects.all()
-    context = {
-        'current_category': category,
-        'places': places,
-        'place_map': place_map,
-        'all_categories': all_categories,
-    }
-    return render(request, 'places/category_detail.html', context)
-
-def register(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            # После регистрации перенаправляет на страницу входа
-            return redirect('login')  # Перенаправляем на страницу входа
-    else:
-        form = UserCreationForm()
-
-    context = {'form': form}
-    return render(request, 'registration/register.html', context)
-
-
-@login_required
-def add_place(request):
-    if request.method == 'POST':
-        form = PlaceForm(request.POST, request.FILES)
-        if form.is_valid():
-            # Обработка категории
-            existing_category = form.cleaned_data.get('existing_category')
-            new_category_name = form.cleaned_data.get('new_category_name')
-            category = None
-
-            if new_category_name:
-                # Если введена новая категория, создаем ее
-                category, created = Category.objects.get_or_create(name=new_category_name)
-            elif existing_category:
-                # Иначе используем выбранную
-                category = existing_category
-
-            pending_place = form.save(commit=False)
-            pending_place.user = request.user
-            pending_place.action = 'add'
-            pending_place.category = category # Сохраняем категорию
-            pending_place.save()
-
-            for photo_file in request.FILES.getlist('photos'):
-                Photo.objects.create(image=photo_file, pending_place=pending_place)
-
-            return redirect('home')
-    else:
-        form = PlaceForm()
-    
-    context = {'form': form, 'categories': Category.objects.all().order_by('name')}
-    return render(request, 'places/add_place.html', context)
-
-# pending_submission.save(): Now that we've made all the necessary changes to the object in memory, 
-# we call .save() without any parameters. This finalizes the process 
-# and saves the pending_submission object to the PendingPlace table in the database
-
-
-@login_required
-def edit_place(request, place_id):
-    place = get_object_or_404(Place, pk=place_id)
-
-    if request.method == 'POST':
-        # Используем PlaceForm для валидации данных, которые пользователь может изменить
-        form = PlaceForm(request.POST, request.FILES) 
-        if form.is_valid():
-            # Создаем новую заявку на модерацию, но не сохраняем ее сразу
-            pending_submission = PendingPlace(
-                user=request.user,
-                action='edit',
-                original_place=place,
-                name=place.name, # Берем название из оригинальной площадки (нельзя менять)
-                description=form.cleaned_data['description'],
-                latitude=form.cleaned_data['latitude'],
-                longitude=form.cleaned_data['longitude'],
-                category=place.category # Берем категорию из оригинальной площадки (нельзя менять)
-            )
-            pending_submission.save()
-
-            # Сохраняем загруженные фото для новой заявки
-            for f in request.FILES.getlist('photos'):
-                Photo.objects.create(pending_place=pending_submission, image=f)
-
-            return redirect('home')
-    else:
-        # При GET-запросе инициализируем форму с данными, которые можно редактировать
-        form = PlaceForm(initial={
-            'description': place.description,
-            'latitude': place.latitude,
-            'longitude': place.longitude
+        context.update({
+            'popular_categories': popular_categories,
+            'other_categories': other_categories,
+            'popular_places': popular_places,
         })
+        return context
 
-    context = {'form': form, 'place': place}
-    return render(request, 'places/edit_place.html', context)
+class CategoryDetailView(DetailView):
+    model = Category
+    template_name = 'places/category_detail.html'
+    context_object_name = 'current_category'
+    slug_url_kwarg = 'category_slug'
 
+    def get_object(self, queryset=None):
+        # Increment view count atomically
+        category = super().get_object(queryset)
+        Category.objects.filter(pk=category.pk).update(view_count=models.F('view_count') + 1)
+        category.refresh_from_db() # Refresh the object to get the new count
+        return category
 
-@login_required # Добавим этот декоратор, чтобы оставлять комментарии могли только авторизованные пользователи
-def place_detail(request, place_id):
-    place = get_object_or_404(Place, pk=place_id)
-    comments = place.comments.all().order_by('-created_at')
-    photos = place.photos.all() # Получаем все фото для этой площадки
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        category = self.get_object()
+        places = category.places.all().annotate(average_rating=models.Avg('ratings__value'))
 
-    # Получаем среднюю оценку
-    average_rating = place.ratings.aggregate(models.Avg('value'))['value__avg']
+        context.update({
+            'places': places,
+            'place_map': generate_place_map(self.request, places),
+            'all_categories': Category.objects.all(),
+        })
+        return context
 
+class PlaceDetailView(DetailView):
+    model = Place
+    template_name = 'places/place_detail.html'
+    context_object_name = 'place'
+    pk_url_kwarg = 'place_id'
 
-    # Создаем карту
-    place_map = None # Инициализируем переменную
-    if place.latitude and place.longitude:
-        m = folium.Map(location=[place.latitude, place.longitude], zoom_start=12)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        place = self.get_object()
 
-        yandex_maps_url = f"https://yandex.ru/maps/?rtext=~{place.latitude},{place.longitude}&z=15"
-        first_photo = place.first_photo
-        if first_photo:
-            # Получаем абсолютный URL для фото, используя request
-            photo_url = request.build_absolute_uri(first_photo.image.url)
-                # HTML-содержимое для iframe с абсолютным URL
-            iframe_html = f"""
-                    <style>
-                        body, html {{
-                            margin: 0 !important;
-                            padding: 0 !important;
-                        }}
-                    </style>
-                    <div style="
-                        display: flex; 
-                        flex-direction: column; 
-                        width: 100%; 
-                        height: 100%; 
-                        box-sizing: border-box; 
-                        font-family: Arial, sans-serif;
-                    ">
-                        <div style="
-                            position: relative; 
-                            width: 100%; 
-                            height: 100%; 
-                            overflow: hidden; 
-                            border-radius: 4px;
-                        ">
-                            <img src="{photo_url}"
-                                style="
-                                    position: absolute; 
-                                    top: 0; 
-                                    left: 0; 
-                                    width: 100%; 
-                                    height: 100%; 
-                                    object-fit: cover;
-                                "
-                                alt="{place.name} фото">
-                        </div>
-                        
-                        <div style="padding: 10px 10px 0 10px; flex-grow: 1;">
-                            <h3 style="
-                                margin-top: 0; 
-                                margin-bottom: 5px; 
-                                font-size: 1em;
-                                color: #007bff;
-                                text-decoration: none; 
-                                font-weight: bold;
-                            ">{place.name}
-                            </h3>
-                            <a href="{yandex_maps_url}" 
-                                target="_blank"
-                                onclick="return L.DomEvent.stopPropagation(event);" 
-                                style="color: #555; font-size: 0.9em; text-decoration: none;"
-                                >Построить маршрут</a>
-                        </div>
-                    </div>
-                """
-        else:
-            # Если фото нет, отображаем только название и ссылку
-            iframe_html = f"""
-                <h3 style="
-                                margin-top: 0; 
-                                margin-bottom: 5px; 
-                                font-size: 1em;
-                                color: #007bff;
-                                text-decoration: none; 
-                                font-weight: bold;
-                            ">{place.name}
-                            </h3>
-                <a href="{yandex_maps_url}" target="_blank" style="color: #555; font-size: 0.9em; text-decoration: none;">Построить маршрут</a>
-                """
-            
-        # Создаём IFrame с фиксированной шириной и адаптивной высотой
-        iframe = folium.IFrame(html=iframe_html, width="200px", height="auto",)
-            
-            # Popup с максимальной шириной 200px
-        popup = folium.Popup(iframe, max_width="200px", max_height="400px")
+        context.update({
+            'comments': place.comments.all().order_by('-created_at'),
+            'photos': place.photos.all(),
+            'average_rating': place.ratings.aggregate(models.Avg('value'))['value__avg'],
+            'place_map': generate_single_place_map(self.request, place),
+            'comment_form': CommentForm(),
+            'rating_form': RatingForm(),
+        })
+        return context
 
-        folium.Marker(
-                [place.latitude, place.longitude],
-                tooltip=place.name,
-                popup=popup
-            ).add_to(m)
-
-        place_map = m._repr_html_()
-
-    # Обработка форм
-    if request.method == 'POST':
+    def post(self, request, *args, **kwargs):
+        place = self.get_object()
         if 'comment_submit' in request.POST:
-            comment_form = CommentForm(request.POST)
-            if comment_form.is_valid():
-                new_comment = comment_form.save(commit=False)
+            form = CommentForm(request.POST)
+            if form.is_valid():
+                new_comment = form.save(commit=False)
                 new_comment.place = place
                 new_comment.user = request.user
                 new_comment.save()
                 return redirect('place_detail', place_id=place.id)
-
         elif 'rating_submit' in request.POST:
-            rating_form = RatingForm(request.POST)
-            if rating_form.is_valid():
-                value = rating_form.cleaned_data['value']
-                user = request.user
-                
-                # Ищем существующую оценку или создаем новую
+            form = RatingForm(request.POST)
+            if form.is_valid():
+                value = form.cleaned_data['value']
                 rating, created = Rating.objects.get_or_create(
                     place=place,
-                    user=user,
-                    defaults={'value': value} # Значение для новой записи
+                    user=request.user,
+                    defaults={'value': value}
                 )
-                
-                # Если запись уже существовала, обновляем её значение
                 if not created:
                     rating.value = value
                     rating.save()
-                    
                 return redirect('place_detail', place_id=place.id)
-    else:
-        comment_form = CommentForm()
-        rating_form = RatingForm()
 
-    context = {
-        'place': place,
-        'comments': comments,
-        'average_rating': average_rating,
-        'comment_form': comment_form,
-        'rating_form': rating_form,
-        'photos': photos, 
-        'place_map': place_map, 
-    }
-    return render(request, 'places/place_detail.html', context)
+        # If forms are invalid, re-render the page with errors
+        return self.get(request, *args, **kwargs)
+
+
+class RegisterView(CreateView):
+    form_class = UserCreationForm
+    template_name = 'registration/register.html'
+    success_url = reverse_lazy('login')
+
+class PlaceCreateView(LoginRequiredMixin, CreateView):
+    model = PendingPlace
+    form_class = PlaceForm
+    template_name = 'places/add_place.html'
+    success_url = reverse_lazy('home')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = Category.objects.all().order_by('name')
+        return context
+
+    def form_valid(self, form):
+        existing_category = form.cleaned_data.get('existing_category')
+        new_category_name = form.cleaned_data.get('new_category_name')
+        category = None
+
+        if new_category_name:
+            category, _ = Category.objects.get_or_create(name=new_category_name)
+        elif existing_category:
+            category = existing_category
+
+        form.instance.user = self.request.user
+        form.instance.action = 'add'
+        form.instance.category = category
+        self.object = form.save()
+
+        for photo_file in self.request.FILES.getlist('photos'):
+            Photo.objects.create(image=photo_file, pending_place=self.object)
+
+        return redirect(self.get_success_url())
+
+class PlaceEditView(LoginRequiredMixin, CreateView):
+    model = PendingPlace
+    form_class = PlaceForm
+    template_name = 'places/edit_place.html'
+    success_url = reverse_lazy('home')
+
+    def dispatch(self, request, *args, **kwargs):
+        self.original_place = get_object_or_404(Place, pk=self.kwargs['place_id'])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial.update({
+            'description': self.original_place.description,
+            'latitude': self.original_place.latitude,
+            'longitude': self.original_place.longitude,
+        })
+        return initial
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['place'] = self.original_place
+        return context
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        form.instance.action = 'edit'
+        form.instance.original_place = self.original_place
+        form.instance.name = self.original_place.name # Keep original name
+        form.instance.category = self.original_place.category # Keep original category
+        self.object = form.save()
+
+        for f in self.request.FILES.getlist('photos'):
+            Photo.objects.create(pending_place=self.object, image=f)
+
+        return redirect(self.get_success_url())
+
+# The original function-based views are now replaced by the CBVs above.
+# The following views are left as they are for now.
+# register view is replaced by RegisterView
+
+@login_required
+def add_place(request):
+    return PlaceCreateView.as_view()(request)
+
+@login_required
+def edit_place(request, place_id):
+    return PlaceEditView.as_view()(request, place_id=place_id)
+
+def register(request):
+    return RegisterView.as_view()(request)

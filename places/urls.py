@@ -1,16 +1,18 @@
 from django.urls import path
-from . import views
+from .views import (
+    HomePageView,
+    PlaceDetailView,
+    PlaceCreateView,
+    PlaceEditView,
+    RegisterView,
+    CategoryDetailView,
+)
 
 urlpatterns = [
-    path('', views.home_page, name='home'),
-    path('place/<int:place_id>/', views.place_detail, name='place_detail'),
-    path('add/', views.add_place, name='add_place'),
-    path('edit/<int:place_id>/', views.edit_place, name='edit_place'),
-    path('register/', views.register, name='register'), 
-    path('category/<slug:category_slug>/', views.category_detail, name='category_detail'),
-    
-    path('', views.home_page, name='about'),
-    path('', views.home_page, name='contacts'),
-    path('', views.home_page, name='categories'),
-
+    path('', HomePageView.as_view(), name='home'),
+    path('place/<int:place_id>/', PlaceDetailView.as_view(), name='place_detail'),
+    path('add/', PlaceCreateView.as_view(), name='add_place'),
+    path('edit/<int:place_id>/', PlaceEditView.as_view(), name='edit_place'),
+    path('register/', RegisterView.as_view(), name='register'),
+    path('category/<slug:category_slug>/', CategoryDetailView.as_view(), name='category_detail'),
 ]
