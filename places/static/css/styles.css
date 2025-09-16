@@ -233,6 +233,10 @@ footer {
     grid-template-columns: repeat(4, 1fr);
 }
 
+#other-categories {
+    padding: 0 0 20px 0;
+}
+
 /*==================================
   Популярные площадки с пагинацией
 ==================================*/
@@ -521,6 +525,7 @@ footer {
 
 .current-category-title {
     margin: 0;
+    width: 60%;
 }
 
 .category-list-container .category-count {
