@@ -47,8 +47,6 @@ class PendingPlaceAdmin(admin.ModelAdmin):
             'fields': ('name', 'description', 'category', 'latitude', 'longitude', 'action', 'status', 'user', 'original_place'),
         }),
     )
-
-    
     
     def get_urls(self):
         urls = super().get_urls()

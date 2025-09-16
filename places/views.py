@@ -2,12 +2,12 @@ from django.db import models
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import TemplateView, DetailView, CreateView
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Place, PendingPlace, Comment, Rating, Photo, Category
 from .forms import PlaceForm, CommentForm, RatingForm
 from .utils import generate_place_map, generate_single_place_map
-
 class HomePageView(TemplateView):
     template_name = 'places/home.html'
 

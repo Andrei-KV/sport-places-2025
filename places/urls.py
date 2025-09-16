@@ -15,4 +15,8 @@ urlpatterns = [
     path('edit/<int:place_id>/', PlaceEditView.as_view(), name='edit_place'),
     path('register/', RegisterView.as_view(), name='register'),
     path('category/<slug:category_slug>/', CategoryDetailView.as_view(), name='category_detail'),
+
+    path('', HomePageView.as_view(), name='about'),
+    path('', HomePageView.as_view(), name='contacts'),
+    path('', HomePageView.as_view(), name='categories'),
 ]
