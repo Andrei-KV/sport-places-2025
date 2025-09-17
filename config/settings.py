@@ -103,12 +103,13 @@ import dj_database_url
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Use the Cloud SQL Python Connector when running in a production environment
-if os.environ.get("USE_CLOUD_SQL_AUTH_PROXY", "False") == "True":
+# We detect the App Engine environment by checking for the GAE_ENV variable.
+if os.environ.get("GAE_ENV") == "standard":
+    # Production settings for App Engine
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            # The Cloud SQL Python Connector provides a socket for the database connection.
-            # The 'HOST' will be the path to this socket.
+            # The 'HOST' is the path to the Unix socket created by the Cloud SQL Auth Proxy.
             "HOST": f"/cloudsql/{os.environ.get('INSTANCE_CONNECTION_NAME')}",
             "NAME": os.environ.get("DB_NAME"),
             "USER": os.environ.get("DB_USER"),
@@ -116,7 +117,7 @@ if os.environ.get("USE_CLOUD_SQL_AUTH_PROXY", "False") == "True":
         }
     }
 else:
-    # This is the configuration for local development
+    # Local development settings
     DATABASES = {
          'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -179,7 +180,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Media files (for user-uploaded content)
 # In production, these will be stored in Google Cloud Storage.
-if os.environ.get("USE_GCS", "False") == "True":
+if os.environ.get("GAE_ENV") == "standard":
     DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
     GS_BUCKET_NAME = os.environ.get("GS_BUCKET_NAME")
     GS_DEFAULT_ACL = "publicRead"
