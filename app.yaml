@@ -1,0 +1,61 @@
+# This file configures the Google App Engine service.
+# It specifies the runtime, environment variables, handlers, and other settings.
+
+# Specify the Python 3.12 runtime.
+runtime: python312
+
+# Handlers define how App Engine routes requests to your application.
+handlers:
+  # This handler routes requests for static files (e.g., /static/css/style.css)
+  # to the 'static_collected' directory. The 'collectstatic' command, which we
+  # run in the entrypoint, gathers all static files into this directory.
+  - url: /static
+    static_dir: static_collected/
+
+  # This handler routes all other requests to your Django application.
+  # The 'script: auto' setting automatically starts the Gunicorn web server
+  # defined in the 'entrypoint'.
+  - url: /.*
+    script: auto
+    secure: always
+
+# The entrypoint is the command that starts your application.
+# It first runs Django's database migrations and then starts the Gunicorn
+# web server to serve your application.
+entrypoint: >
+  bash -c "python manage.py migrate && gunicorn -b :$PORT config.wsgi:application"
+
+# Environment variables are passed to your application.
+# These are used in settings.py to configure the application for production.
+env_variables:
+  # --- General Settings ---
+  # This tells settings.py to disable DEBUG mode.
+  DEBUG: "False"
+  # This is the new secret key for your production environment.
+  SECRET_KEY: "5tpqpk#1tj%#t0&8i@==ej83n(3k4oz*3!y*h-8y+ua-ui-xni"
+  # The Google Cloud Project ID for your application.
+  GCP_PROJECT_ID: "sport-places-472310"
+
+  # --- Cloud SQL Database Settings ---
+  # This flag tells settings.py to use the Cloud SQL configuration.
+  USE_CLOUD_SQL_AUTH_PROXY: "True"
+  # The full connection name of your Cloud SQL instance.
+  INSTANCE_CONNECTION_NAME: "sport-places-472310:europe-west1:sport-places-db"
+  #
+  # !!! IMPORTANT: Replace these with your actual database credentials. !!!
+  DB_NAME: "YOUR_DATABASE_NAME"    # e.g., "postgres" or "sport_places_db"
+  DB_USER: "YOUR_DATABASE_USER"    # e.g., "postgres"
+  DB_PASS: "YOUR_DATABASE_PASSWORD" # Your database user's password
+
+  # --- Google Cloud Storage (GCS) for Media Files ---
+  # This flag tells settings.py to use GCS for file uploads.
+  USE_GCS: "True"
+  #
+  # !!! IMPORTANT: Replace this with the name of the GCS bucket you will create. !!!
+  # It must be a globally unique name.
+  GS_BUCKET_NAME: "YOUR_GCS_BUCKET_NAME"
+
+# This section enables the Cloud SQL Auth Proxy.
+# It automatically provides a secure connection to your database.
+beta_settings:
+  cloud_sql_instances: "sport-places-472310:europe-west1:sport-places-db"

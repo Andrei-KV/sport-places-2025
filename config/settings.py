@@ -21,12 +21,29 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-5po3eoyb=a87bhf&&ru3h744fu=olejj322pyda(0xm6(fanan"
+# In production, the SECRET_KEY is loaded from an environment variable set in app.yaml.
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-5po3eoyb=a87bhf&&ru3h744fu=olejj322pyda(0xm6(fanan")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG is False in production, controlled by an environment variable in app.yaml.
+DEBUG = os.environ.get("DEBUG") != "False"
 
+# Configure allowed hosts for production
 ALLOWED_HOSTS = []
+if not DEBUG:
+    # Get the GCP Project ID from an environment variable
+    GCP_PROJECT_ID = os.environ.get("GCP_PROJECT_ID")
+    if GCP_PROJECT_ID:
+        # The standard URL for App Engine apps is project-id.appspot.com
+        # A region-specific URL might also be used, e.g., project-id.uc.r.appspot.com
+        ALLOWED_HOSTS.append(f"{GCP_PROJECT_ID}.appspot.com")
+        ALLOWED_HOSTS.append(f"{GCP_PROJECT_ID}.ew.r.appspot.com") # Example for europe-west
+    else:
+        # Fallback if the project ID is not set, though it should be.
+        ALLOWED_HOSTS.append(".appspot.com")
+else:
+    # For local development
+    ALLOWED_HOSTS.extend(["localhost", "127.0.0.1"])
 
 
 # Application definition
@@ -39,6 +56,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     'rest_framework',
+    'storages', # For Google Cloud Storage
     'places',
 ]
 
@@ -84,16 +102,31 @@ import dj_database_url
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'sport_places_2025',
-        'USER': 'dron',
-        'PASSWORD': '1765362',
-        'HOST': 'localhost',
-        'PORT': '5432',
+# Use the Cloud SQL Python Connector when running in a production environment
+if os.environ.get("USE_CLOUD_SQL_AUTH_PROXY", "False") == "True":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            # The Cloud SQL Python Connector provides a socket for the database connection.
+            # The 'HOST' will be the path to this socket.
+            "HOST": f"/cloudsql/{os.environ.get('INSTANCE_CONNECTION_NAME')}",
+            "NAME": os.environ.get("DB_NAME"),
+            "USER": os.environ.get("DB_USER"),
+            "PASSWORD": os.environ.get("DB_PASS"),
+        }
     }
-}
+else:
+    # This is the configuration for local development
+    DATABASES = {
+         'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'sport_places_2025',
+            'USER': 'dron',
+            'PASSWORD': '1765362',
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
+    }
 
 
 # Password validation
@@ -134,15 +167,32 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [
     BASE_DIR / 'places/static',
 ]
+# This is the directory where Django's `collectstatic` command will gather all static files
+# for deployment. App Engine will then be configured to serve files from this directory.
+STATIC_ROOT = BASE_DIR / "static_collected"
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Media files (for user-uploaded content)
+# In production, these will be stored in Google Cloud Storage.
+if os.environ.get("USE_GCS", "False") == "True":
+    DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
+    GS_BUCKET_NAME = os.environ.get("GS_BUCKET_NAME")
+    GS_DEFAULT_ACL = "publicRead"
+    # The MEDIA_URL is the public URL for the files in the GCS bucket.
+    MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/media/"
+    # MEDIA_ROOT is not used by the GCS backend but is good practice to define.
+    # It points to the 'media' folder within the bucket.
+    MEDIA_ROOT = "media/"
+else:
+    # For local development, files are stored on the local filesystem.
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 # Перенаправление на страницу после регистрации
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
-
-# Настройки для медиа-файлов (загружаемые пользователями)
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
