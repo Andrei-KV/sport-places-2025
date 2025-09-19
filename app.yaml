@@ -1,0 +1,22 @@
+runtime: python312
+entrypoint: gunicorn -b :$PORT sport-places-2025.wsgi
+
+env_variables:
+  DJANGO_SETTINGS_MODULE: "sport-places-2025.settings"
+
+  # Переменные для продакшена (позже подставим реальные значения Cloud SQL)
+  SECRET_KEY: "секрет_продакшена"
+  DEBUG: "False"
+  ALLOWED_HOSTS: "PROJECT_ID.ew.r.appspot.com"
+
+  DB_NAME: "prod_db"
+  DB_USER: "prod_user"
+  DB_PASSWORD: "prod_password"
+  DB_HOST: "/cloudsql/PROJECT_ID:REGION:INSTANCE"
+  DB_PORT: "5432"
+
+handlers:
+- url: /static
+  static_dir: static
+- url: /.*
+  script: auto
