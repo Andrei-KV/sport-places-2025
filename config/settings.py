@@ -162,9 +162,18 @@ if os.getenv("DEBUG", "False").lower() == "true":
     MEDIA_URL = '/media/'
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 else:
-    # 🔹 Продакшен (App Engine): сохраняем файлы в Google Cloud Storage
+     # 🔹 Продакшен (App Engine): сохраняем файлы в Google Cloud Storage
     DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
-    MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/"
+    
+    # Конфигурация для django-storages
+    # Это имя должно совпадать с именем вашего бакета в Google Cloud Storage
+    # Оно берется из переменной окружения GS_BUCKET_NAME в app.yaml
+    bucket_name = os.getenv("GS_BUCKET_NAME")
+    GS_BUCKET_NAME = bucket_name
+    GS_DEFAULT_ACL = "publicRead"  # Новые файлы будут публично доступны для чтения
+    
+    MEDIA_URL = f"https://storage.googleapis.com/{bucket_name}/"
+
 
 import logging
 logger = logging.getLogger(__name__)

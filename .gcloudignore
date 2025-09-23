@@ -13,6 +13,10 @@
 .git
 .gitignore
 
+# Force the inclusion of the 'staticfiles' directory, even if it's in .gitignore.
+# This is crucial for Django static files to be deployed to App Engine.
+!staticfiles
+
 # Python pycache:
 __pycache__/
 # Ignored by the build system

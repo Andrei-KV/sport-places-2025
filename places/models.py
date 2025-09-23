@@ -1,11 +1,17 @@
 from django.db import models
 from django.contrib.auth.models import User
+# For GCP
+from .storages import PublicMediaStorage
 
 # Модель для категорий площадок
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(unique=True, blank=True, null=True)
-    cover_photo = models.ImageField(upload_to='category_covers/', blank=True, null=True)
+    # For local
+    # cover_photo = models.ImageField(upload_to='category_covers/', blank=True, null=True)
+    # For GCP
+    cover_photo = models.ImageField(upload_to='category_covers/', blank=True, null=True, storage=PublicMediaStorage())
+   
     # Для отслеживания популярности для порядка отображения
     view_count = models.PositiveIntegerField(default=0)
 
@@ -90,7 +96,11 @@ class Rating(models.Model):
 class Photo(models.Model):
     pending_place = models.ForeignKey(PendingPlace, on_delete=models.CASCADE, related_name='pending_photos', null=True, blank=True)
     place = models.ForeignKey(Place, on_delete=models.CASCADE, related_name='photos', null=True, blank=True)
-    image = models.ImageField(upload_to='place_photos/')
+    # For local
+    # image = models.ImageField(upload_to='place_photos/')
+    # For GCP
+    image = models.ImageField(upload_to='place_photos/', storage=PublicMediaStorage())
+
 
     def __str__(self):
         return f'Фото для {self.pending_place.name if self.pending_place else self.place.name}'

@@ -1,3 +1,4 @@
+import logging
 from django.db import models
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import render, redirect, get_object_or_404
@@ -123,6 +124,7 @@ class PlaceCreateView(LoginRequiredMixin, CreateView):
         return context
 
     def form_valid(self, form):
+        logger = logging.getLogger(__name__)
         existing_category = form.cleaned_data.get('existing_category')
         new_category_name = form.cleaned_data.get('new_category_name')
         category = None
@@ -135,21 +137,37 @@ class PlaceCreateView(LoginRequiredMixin, CreateView):
         form.instance.user = self.request.user
         form.instance.action = 'add'
         form.instance.category = category
+
+
+        logger.info(f"User '{self.request.user}' is submitting a new place form.")
+        
+
         self.object = form.save()
 
         # Для локальной работы или сохраненния файлов в папке проекта
-        for photo_file in self.request.FILES.getlist('photos'):
-            Photo.objects.create(image=photo_file, pending_place=self.object)
+        # for photo_file in self.request.FILES.getlist('photos'):
+        #     Photo.objects.create(image=photo_file, pending_place=self.object)
 
-        # # Для работы с Google
-        # gcs = GoogleCloudStorage()
-        # for uploaded_file in self.request.FILES.getlist('photos'):
-        #     # сохраняем прямо в GCS
-        #     file_name = gcs.save(uploaded_file.name, uploaded_file)
-        #     Photo.objects.create(
-        #         pending_place=self.object,
-        #         image=file_name
-        #     )
+        logger.info(f"Saved PendingPlace with ID: {self.object.id}. Now processing photos.")
+
+        photos_to_upload = self.request.FILES.getlist('photos')
+        logger.info(f"Found {len(photos_to_upload)} photo(s) in the request.")
+
+        # Этот код теперь должен работать и для локальной среды, и для GCS,
+        # так как DEFAULT_FILE_STORAGE настроен в settings.py
+        try:
+            for photo_file in photos_to_upload:
+                logger.info(f"Attempting to save photo '{photo_file.name}' for PendingPlace ID {self.object.id}.")
+                Photo.objects.create(image=photo_file, pending_place=self.object)
+                logger.info(f"Successfully saved photo '{photo_file.name}'.")
+        except Exception as e:
+            # Если произойдет ошибка, мы увидим ее в логах Google Cloud
+            logger.error(f"!!! FAILED to save a photo for PendingPlace ID {self.object.id} !!!")
+            logger.error(f"Error Type: {type(e).__name__}")
+            logger.error(f"Error Details: {e}", exc_info=True) # exc_info=True добавляет traceback в лог
+            # В реальном приложении здесь можно было бы удалить self.object
+            # или показать пользователю сообщение об ошибке.
+            # Пока что просто логируем.
 
         return redirect(self.get_success_url())
 

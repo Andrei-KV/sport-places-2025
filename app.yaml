@@ -1,6 +1,6 @@
 runtime: python312
 # entrypoint: gunicorn -b :$PORT sport_places_2025.wsgi
-entrypoint: gunicorn -b :$PORT config.wsgi
+entrypoint: python manage.py migrate && gunicorn -b :$PORT config.wsgi
 
 env_variables:
   DJANGO_SETTINGS_MODULE: "config.settings"
