@@ -1,22 +1,24 @@
 runtime: python312
-entrypoint: gunicorn -b :$PORT sport-places-2025.wsgi
+# entrypoint: gunicorn -b :$PORT sport_places_2025.wsgi
+entrypoint: gunicorn -b :$PORT config.wsgi
 
 env_variables:
-  DJANGO_SETTINGS_MODULE: "sport-places-2025.settings"
+  DJANGO_SETTINGS_MODULE: "config.settings"
 
   # Переменные для продакшена (позже подставим реальные значения Cloud SQL)
-  SECRET_KEY: "секрет_продакшена"
+  SECRET_KEY: "django-insecure-5po3eoyb=a87bhf&&ru3h744fu=olejj322pyda(0xm6(fanan"
   DEBUG: "False"
-  ALLOWED_HOSTS: "PROJECT_ID.ew.r.appspot.com"
+  ALLOWED_HOSTS: ".appspot.com"
 
-  DB_NAME: "prod_db"
-  DB_USER: "prod_user"
-  DB_PASSWORD: "prod_password"
-  DB_HOST: "/cloudsql/PROJECT_ID:REGION:INSTANCE"
+  DB_NAME: "sport_places_gpt_db"
+  DB_USER: "sport_user_gpt"
+  DB_PASSWORD: "1765362Kavaliou#"
+  DB_HOST: "/cloudsql/sport-places-472310:europe-west1:sport-places-db"
   DB_PORT: "5432"
+  GS_BUCKET_NAME: "sport-places-media"
 
 handlers:
 - url: /static
-  static_dir: static
+  static_dir: staticfiles    # ⚡️ совпадает с STATIC_ROOT
 - url: /.*
   script: auto

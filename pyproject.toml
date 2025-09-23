@@ -1,5 +1,5 @@
 [project]
-name = "sport-places-2025"
+name = "sport_places_2025"
 version = "0.1.0"
 description = ""
 authors = [
@@ -17,6 +17,9 @@ dependencies = [
     "gunicorn (>=22.0.0,<23.0.0)",
     "dj-database-url (>=2.0.0,<3.0.0)",
     "dotenv (>=0.9.9,<0.10.0)",
+    "psycopg2-binary (>=2.9.10,<3.0.0)",
+    "django-storages (>=1.14.6,<2.0.0)",
+    "google-cloud-storage (>=3.4.0,<4.0.0)",
 ]
 
 [tool.poetry]

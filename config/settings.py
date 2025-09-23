@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv  # если хочешь подхватывать .env локально
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -29,8 +30,12 @@ SECRET_KEY = os.getenv('SECRET_KEY', '1765362')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '.appspot.com').split(',')
+# ALLOWED_HOSTS = ['127.0.0.1','localhost','0.0.0.0']
+
+# For media files storage on GCP
+GS_BUCKET_NAME = os.getenv("GS_BUCKET_NAME", "sport-places-media")
 
 # Application definition
 
@@ -43,6 +48,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     'rest_framework',
     'places',
+    'storages',       # <— обязательно для работы с GCS
 ]
 
 REST_FRAMEWORK = {
@@ -90,10 +96,10 @@ import dj_database_url
 DATABASES = {
      'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'sport_places_2025'),
-        'USER': os.getenv('DB_USER', 'dron'),
-        'PASSWORD': os.getenv('DB_PASSWORD', '1765362'),
-        'HOST': os.getenv('DB_HOST', '127.0.0.1'),
+        'NAME': os.getenv('DB_NAME', 'sport_places_gpt_db'),
+        'USER': os.getenv('DB_USER', 'sport_user_gpt'),
+        'PASSWORD': os.getenv('DB_PASSWORD', '1765362Kavaliou#'),
+        'HOST': os.getenv('DB_HOST', '/cloudsql/sport-places-472310:europe-west1:sport-places-db'),
         'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
@@ -134,7 +140,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'static'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / 'places/static',
 ]
@@ -148,5 +154,33 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 # Настройки для медиа-файлов (загружаемые пользователями)
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+if os.getenv("DEBUG", "False").lower() == "true":
+    # 🔹 Локальная разработка: сохраняем файлы на диск
+    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+else:
+    # 🔹 Продакшен (App Engine): сохраняем файлы в Google Cloud Storage
+    DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
+    MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/"
+
+import logging
+logger = logging.getLogger(__name__)
+logger.warning(f"DEBUG={DEBUG}, DEFAULT_FILE_STORAGE={DEFAULT_FILE_STORAGE}, GS_BUCKET_NAME={GS_BUCKET_NAME}")
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'ERROR',
+    },
+}

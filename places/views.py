@@ -5,6 +5,9 @@ from django.views.generic import TemplateView, DetailView, CreateView
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
+# Для корректного сохранения фото в Google storage
+from storages.backends.gcloud import GoogleCloudStorage
+from django.core.files import File
 from .models import Place, PendingPlace, Comment, Rating, Photo, Category
 from .forms import PlaceForm, CommentForm, RatingForm
 from .utils import generate_place_map, generate_single_place_map
@@ -134,8 +137,19 @@ class PlaceCreateView(LoginRequiredMixin, CreateView):
         form.instance.category = category
         self.object = form.save()
 
+        # Для локальной работы или сохраненния файлов в папке проекта
         for photo_file in self.request.FILES.getlist('photos'):
             Photo.objects.create(image=photo_file, pending_place=self.object)
+
+        # # Для работы с Google
+        # gcs = GoogleCloudStorage()
+        # for uploaded_file in self.request.FILES.getlist('photos'):
+        #     # сохраняем прямо в GCS
+        #     file_name = gcs.save(uploaded_file.name, uploaded_file)
+        #     Photo.objects.create(
+        #         pending_place=self.object,
+        #         image=file_name
+        #     )
 
         return redirect(self.get_success_url())
 
@@ -170,6 +184,7 @@ class PlaceEditView(LoginRequiredMixin, CreateView):
         form.instance.name = self.original_place.name # Keep original name
         form.instance.category = self.original_place.category # Keep original category
         self.object = form.save()
+
 
         for f in self.request.FILES.getlist('photos'):
             Photo.objects.create(pending_place=self.object, image=f)
