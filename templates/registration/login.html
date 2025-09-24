@@ -1,8 +1,26 @@
+{% extends 'base/base.html' %}
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/styles.css' %}">
-<h1>Войти в аккаунт</h1>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Войти</button>
-</form>
+{% load filters %}
+{% block title %}Вход{% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="container">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <h1>Войти в аккаунт</h1>
+    
+    <form method="post" class="place-form">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="{{ form.username.id_for_label }}">Имя пользователя или email</label>
+            {{ form.username }}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.password.id_for_label }}">Пароль</label>
+            {{ form.password }}
+        </div>
+        <button type="submit" class="submit-btn">Войти</button>
+    </form>
+</div>
+{% endblock %}
