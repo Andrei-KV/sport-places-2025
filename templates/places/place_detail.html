@@ -108,130 +108,202 @@
     
 </div>
 
+<div id="lightbox" class="lightbox">
+    <span class="lightbox-close">&times;</span>
+    <div class="lightbox-content">
+        <img id="lightbox-image" src="" alt="">
+        <button id="lightbox-prev" class="lightbox-nav prev">&#10094;</button>
+        <button id="lightbox-next" class="lightbox-nav next">&#10095;</button>
+    </div>
+</div>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const gallery = document.querySelector('.photo-gallery');
-    const mainPhoto = document.getElementById('main-place-photo');
-    const cards = gallery ? gallery.querySelectorAll('.photo-card') : [];
-    const dotsContainer = document.querySelector('.photo-dots');
-    const prevArrow = document.querySelector('.prev-arrow');
-    const nextArrow = document.querySelector('.next-arrow');
+    document.addEventListener('DOMContentLoaded', function() {
+        const gallery = document.querySelector('.photo-gallery');
+        const mainPhoto = document.getElementById('main-place-photo');
+        const cards = gallery ? gallery.querySelectorAll('.photo-card') : [];
+        const dotsContainer = document.querySelector('.photo-dots');
+        const prevArrow = document.querySelector('.prev-arrow');
+        const nextArrow = document.querySelector('.next-arrow');
     
-    // Определяем количество карточек на странице на основе ширины
-    const getCardsPerPage = () => {
-        if (window.innerWidth <= 480) return 1;
-        if (window.innerWidth <= 768) return 2;
-        if (window.innerWidth <= 992) return 3;
-        return 4;
-    };
+        // Элементы lightbox
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImage = document.getElementById('lightbox-image');
+        const lightboxPrev = document.getElementById('lightbox-prev');
+        const lightboxNext = document.getElementById('lightbox-next');
+        const lightboxClose = document.querySelector('.lightbox-close');
     
-    if (cards.length > 0) {
-        let cardsPerPage = getCardsPerPage();
-        let numDots = Math.ceil(cards.length / cardsPerPage);
-        let currentPage = 0;
-
-        // Функция для обновления точек пагинации
-        const updateDots = () => {
-            dotsContainer.innerHTML = ''; // Очищаем существующие точки
-            numDots = Math.ceil(cards.length / cardsPerPage); // Пересчитываем количество точек
-            for (let i = 0; i < numDots; i++) {
-                const dot = document.createElement('span');
-                dot.classList.add('dot');
-                if (i === currentPage) dot.classList.add('active-dot');
-                dot.dataset.page = i;
-                dotsContainer.appendChild(dot);
-            }
-        };
-
-        // Инициализация точек
-        updateDots();
-
-        // Показываем/скрываем стрелки
-        const updateArrows = () => {
-            if (cards.length > cardsPerPage) {
-                prevArrow.style.display = 'block';
-                nextArrow.style.display = 'block';
-                dotsContainer.style.display = 'block';
-            } else {
-                prevArrow.style.display = 'none';
-                nextArrow.style.display = 'none';
-                dotsContainer.style.display = 'none';
-            }
-        };
-
-        const goToPage = (pageIndex) => {
-            // Убеждаемся, что pageIndex находится в допустимых пределах
-            if (pageIndex < 0) pageIndex = numDots - 1;
-            if (pageIndex >= numDots) pageIndex = 0;
-
-            const cardWidth = cards[0].offsetWidth; // Ширина одной карточки
-            const gap = 10; // Отступ между карточками
-            
-            // Вычисляем позицию прокрутки
-            // Учитываем ширину карточки и отступы
-            gallery.scrollLeft = pageIndex * (cardWidth * cardsPerPage + gap * (cardsPerPage - 1));
-            
-            dotsContainer.querySelectorAll('.dot').forEach((dot, index) => {
-                dot.classList.toggle('active-dot', index === pageIndex);
-            });
-            currentPage = pageIndex;
+        // Текущий индекс фото
+        let currentPhotoIndex = 0;
+    
+        // Определяем количество карточек на странице на основе ширины
+        const getCardsPerPage = () => {
+            if (window.innerWidth <= 480) return 1;
+            if (window.innerWidth <= 768) return 2;
+            if (window.innerWidth <= 992) return 3;
+            return 4;
         };
         
-        // Обработчики для стрелок
-        prevArrow.addEventListener('click', () => {
-            const newPage = (currentPage > 0) ? currentPage - 1 : numDots - 1;
-            goToPage(newPage);
-        });
+        // --- Логика фотогалереи и пагинации ---
         
-        nextArrow.addEventListener('click', () => {
-            const newPage = (currentPage < numDots - 1) ? currentPage + 1 : 0;
-            goToPage(newPage);
-        });
-
-        // Обработчики для точек
-        dotsContainer.addEventListener('click', (e) => {
-            if (e.target.classList.contains('dot')) {
-                const pageIndex = parseInt(e.target.dataset.page);
-                goToPage(pageIndex);
-            }
-        });
-
-        // Обработчики клика по миниатюрам для отображения в большом формате
-        cards.forEach(card => {
-            card.addEventListener('click', function() {
-                const fullSrc = this.dataset.fullSrc;
-                if (mainPhoto) {
-                    mainPhoto.src = fullSrc;
+        if (cards.length > 0) {
+            let cardsPerPage = getCardsPerPage();
+            let numDots = Math.ceil(cards.length / cardsPerPage);
+            let currentPage = 0;
+    
+            const updateDots = () => {
+                if (!dotsContainer) return;
+                dotsContainer.innerHTML = '';
+                numDots = Math.ceil(cards.length / cardsPerPage);
+                for (let i = 0; i < numDots; i++) {
+                    const dot = document.createElement('span');
+                    dot.classList.add('dot');
+                    if (i === currentPage) dot.classList.add('active-dot');
+                    dot.dataset.page = i;
+                    dotsContainer.appendChild(dot);
                 }
+            };
+    
+            const updateArrows = () => {
+                if (cards.length > cardsPerPage) {
+                    if (prevArrow) prevArrow.style.display = 'block';
+                    if (nextArrow) nextArrow.style.display = 'block';
+                    if (dotsContainer) dotsContainer.style.display = 'block';
+                } else {
+                    if (prevArrow) prevArrow.style.display = 'none';
+                    if (nextArrow) nextArrow.style.display = 'none';
+                    if (dotsContainer) dotsContainer.style.display = 'none';
+                }
+            };
+    
+            const goToPage = (pageIndex) => {
+                if (pageIndex < 0) pageIndex = numDots - 1;
+                if (pageIndex >= numDots) pageIndex = 0;
+    
+                const cardWidth = cards[0].offsetWidth;
+                const gap = 10;
+                
+                if (gallery) {
+                    gallery.scrollLeft = pageIndex * (cardWidth * cardsPerPage + gap * (cardsPerPage - 1));
+                }
+                
+                if (dotsContainer) {
+                    dotsContainer.querySelectorAll('.dot').forEach((dot, index) => {
+                        dot.classList.toggle('active-dot', index === pageIndex);
+                    });
+                }
+                currentPage = pageIndex;
+            };
+            
+            updateDots();
+    
+            if (prevArrow) {
+                prevArrow.addEventListener('click', () => {
+                    const newPage = (currentPage > 0) ? currentPage - 1 : numDots - 1;
+                    goToPage(newPage);
+                });
+            }
+            
+            if (nextArrow) {
+                nextArrow.addEventListener('click', () => {
+                    const newPage = (currentPage < numDots - 1) ? currentPage + 1 : 0;
+                    goToPage(newPage);
+                });
+            }
+    
+            if (dotsContainer) {
+                dotsContainer.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('dot')) {
+                        const pageIndex = parseInt(e.target.dataset.page);
+                        goToPage(pageIndex);
+                    }
+                });
+            }
+    
+            // Обработчики клика по миниатюрам
+            cards.forEach((card, index) => {
+                card.addEventListener('click', function() {
+                    // Это обновляет главное фото
+                    if (mainPhoto) {
+                        mainPhoto.src = this.dataset.fullSrc;
+                    }
+                    // Обновляем текущий индекс фото, но НЕ ОТКРЫВАЕМ lightbox здесь
+                    currentPhotoIndex = index;
+                });
             });
-        });
-        
-        // Пересчитываем и обновляем при изменении размера окна
-        window.addEventListener('resize', () => {
-            cardsPerPage = getCardsPerPage();
-            updateDots(); // Обновляем точки при изменении размера
-            goToPage(0); // Переходим на первую страницу после изменения размера
+            
+            window.addEventListener('resize', () => {
+                cardsPerPage = getCardsPerPage();
+                updateDots();
+                goToPage(0);
+                updateArrows();
+            });
+    
+            if (mainPhoto) {
+                if (cards.length > 0) {
+                     mainPhoto.src = cards[0].dataset.fullSrc;
+                     currentPhotoIndex = 0;
+                }
+            }
+            goToPage(0);
             updateArrows();
-        });
-
-        // Инициализируем при загрузке
-        if (mainPhoto) {
-            // При загрузке страницы, убедитесь, что первое фото выбрано
-            // или что-то отображается, если фото нет
-            if (cards.length > 0) {
-                 mainPhoto.src = cards[0].dataset.fullSrc;
-            } else {
-                // Если нет фото, можно показать заглушку
-                // Это уже обрабатывается в HTML, но можно перепроверить
-                const mainPhotoDisplay = document.querySelector('.main-photo-display');
-                if (mainPhotoDisplay && !mainPhoto) { // если mainPhoto не существует (нет img)
-                    mainPhotoDisplay.innerHTML = '<div class="no-photo-placeholder">Нет фото</div>';
-                }
-            }
         }
-        goToPage(0);
-        updateArrows();
-    }
-});
+        
+        // --- НОВАЯ ЛОГИКА ДЛЯ LIGHTBOX ---
+        // ЭТОТ КОД БЫЛ ИЗМЕНЕН, ЧТОБЫ ИСПРАВИТЬ ОШИБКИ
+    
+        const openLightbox = (index) => {
+            if (!cards.length || !lightbox) return;
+            currentPhotoIndex = index;
+            lightboxImage.src = cards[currentPhotoIndex].dataset.fullSrc;
+            lightbox.classList.add('visible');
+            document.body.style.overflow = 'hidden';
+        };
+    
+        const closeLightbox = () => {
+            if (!lightbox) return;
+            lightbox.classList.remove('visible');
+            document.body.style.overflow = '';
+        };
+    
+        const showNextPhoto = () => {
+            currentPhotoIndex = (currentPhotoIndex + 1) % cards.length;
+            lightboxImage.src = cards[currentPhotoIndex].dataset.fullSrc;
+        };
+        
+        const showPrevPhoto = () => {
+            currentPhotoIndex = (currentPhotoIndex - 1 + cards.length) % cards.length;
+            lightboxImage.src = cards[currentPhotoIndex].dataset.fullSrc;
+        };
+        
+        // ИСПРАВЛЕНИЕ: lightbox открывается ТОЛЬКО по клику на большое фото
+        if (mainPhoto) {
+            mainPhoto.style.cursor = 'pointer';
+            mainPhoto.addEventListener('click', () => {
+                // Используем уже установленный текущий индекс
+                openLightbox(currentPhotoIndex);
+            });
+        }
+    
+        if (lightboxNext) lightboxNext.addEventListener('click', showNextPhoto);
+        if (lightboxPrev) lightboxPrev.addEventListener('click', showPrevPhoto);
+        
+        if (lightboxClose) lightboxClose.addEventListener('click', closeLightbox);
+        if (lightbox) {
+            lightbox.addEventListener('click', (e) => {
+                if (e.target === lightbox) {
+                    closeLightbox();
+                }
+            });
+        }
+    
+        document.addEventListener('keydown', (e) => {
+            if (lightbox && lightbox.classList.contains('visible')) {
+                if (e.key === 'ArrowLeft') showPrevPhoto();
+                if (e.key === 'ArrowRight') showNextPhoto();
+                if (e.key === 'Escape') closeLightbox();
+            }
+        });
+    });
 </script>
 {% endblock %}

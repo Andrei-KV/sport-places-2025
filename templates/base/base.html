@@ -24,6 +24,11 @@
                 </a>
             </div>
             <nav class="main-nav">
+                <button class="hamburger-menu">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
                 <ul class="nav-list">
                     <li class="dropdown-menu">
                         <a href="#">Категории</a>
@@ -81,6 +86,19 @@
             header.classList.remove("smaller");
           }
         };
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburger = document.querySelector('.hamburger-menu');
+            const navList = document.querySelector('.nav-list');
+            
+            if (hamburger && navList) {
+                hamburger.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    navList.classList.toggle('active');
+                });
+            }
+        });
     </script>
 </body>
 </html>
