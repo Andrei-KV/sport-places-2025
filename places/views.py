@@ -2,15 +2,16 @@ import logging
 from django.db import models
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import TemplateView, DetailView, CreateView
+from django.views.generic import TemplateView, DetailView, CreateView,
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import LoginView
 # Для корректного сохранения фото в Google storage
 from storages.backends.gcloud import GoogleCloudStorage
 from django.core.files import File
 from .models import Place, PendingPlace, Comment, Rating, Photo, Category
-from .forms import PlaceForm, CommentForm, RatingForm
+from .forms import PlaceForm, CommentForm, RatingForm, CustomAuthenticationForm, CustomUserCreationForm
 from .utils import generate_place_map, generate_single_place_map
 class HomePageView(TemplateView):
     template_name = 'places/home.html'
@@ -108,9 +109,15 @@ class PlaceDetailView(DetailView):
 
 
 class RegisterView(CreateView):
-    form_class = UserCreationForm
+    form_class = CustomUserCreationForm
     template_name = 'registration/register.html'
     success_url = reverse_lazy('login')
+
+
+class CustomLoginView(LoginView):
+    authentication_form = CustomAuthenticationForm
+    template_name = 'registration/login.html'
+
 
 class PlaceCreateView(LoginRequiredMixin, CreateView):
     model = PendingPlace
