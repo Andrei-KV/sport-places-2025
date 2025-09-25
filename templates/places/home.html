@@ -115,48 +115,68 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- НОВЫЙ КОД ДЛЯ ПАГИНАЦИИ ---
-    const dots = document.querySelectorAll('.pagination-dots .dot');
+    // --- ОБНОВЛЕННЫЙ КОД ДЛЯ АДАПТИВНОЙ ПАГИНАЦИИ ---
     const page = document.querySelector('.popular-places-page');
-    const cards = page.querySelectorAll('.card');
-    
-    // Скрываем все карточки, кроме первых 4
-    cards.forEach((card, index) => {
-        if (index >= 4) {
-            card.style.display = 'none';
+    const cards = Array.from(page.querySelectorAll('.card'));
+    const paginationDotsContainer = document.querySelector('.pagination-dots');
+    let itemsPerPage;
+
+    function getItemsPerPage() {
+        if (window.matchMedia('(max-width: 768px)').matches) {
+            return 2;
+        } else if (window.matchMedia('(max-width: 992px)').matches) {
+            return 3;
         }
-    });
+        return 4;
+    }
 
-    dots.forEach(dot => {
-        dot.addEventListener('click', function() {
-            // Удаляем класс 'active-dot' со всех точек
-            dots.forEach(d => d.classList.remove('active-dot'));
-            // Добавляем класс 'active-dot' только на нажатую точку
-            this.classList.add('active-dot');
+    function setupPagination() {
+        itemsPerPage = getItemsPerPage();
+        const pageCount = Math.ceil(cards.length / itemsPerPage);
 
-            const pageIndex = this.getAttribute('data-page');
-
-            if (pageIndex === '0') {
-                // Показываем первые 4 карточки
-                cards.forEach((card, index) => {
-                    if (index < 4) {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-            } else if (pageIndex === '1') {
-                // Показываем вторые 4 карточки
-                cards.forEach((card, index) => {
-                    if (index >= 4) {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
+        // Очищаем и создаем точки
+        paginationDotsContainer.innerHTML = '';
+        if (pageCount > 1) {
+            for (let i = 0; i < pageCount; i++) {
+                const dot = document.createElement('span');
+                dot.classList.add('dot');
+                dot.dataset.page = i;
+                if (i === 0) {
+                    dot.classList.add('active-dot');
+                }
+                paginationDotsContainer.appendChild(dot);
             }
+        }
+        
+        showPage(0);
+
+        // Назначаем обработчики на новые точки
+        const dots = paginationDotsContainer.querySelectorAll('.dot');
+        dots.forEach(dot => {
+            dot.addEventListener('click', function() {
+                const pageIndex = parseInt(this.dataset.page, 10);
+                showPage(pageIndex);
+                
+                dots.forEach(d => d.classList.remove('active-dot'));
+                this.classList.add('active-dot');
+            });
         });
-    });
+    }
+
+    function showPage(pageIndex) {
+        const start = pageIndex * itemsPerPage;
+        const end = start + itemsPerPage;
+
+        cards.forEach((card, index) => {
+            card.style.display = (index >= start && index < end) ? 'block' : 'none';
+        });
+    }
+
+    // Первоначальная настройка
+    setupPagination();
+
+    // Перенастройка при изменении размера окна
+    window.addEventListener('resize', setupPagination);
 });
 </script>
 {% endblock %}

@@ -57,7 +57,9 @@ class PendingPlaceAdmin(admin.ModelAdmin):
 
     def approve_single_submission(self, request, object_id):
         submission = self.get_object(request, object_id)
-        if submission.action == 'add':
+        if submission.status == 'approved':
+            return HttpResponseRedirect("../")
+        elif submission.action == 'add':
             new_place = Place.objects.create(
                 name=submission.name,
                 description=submission.description,
@@ -77,6 +79,7 @@ class PendingPlaceAdmin(admin.ModelAdmin):
             photos_to_copy = Photo.objects.filter(pending_place=submission)
             photos_to_copy.update(pending_place=None, place=original)
         
+
         # Обновляем статус заявки на "одобрена"
         submission.status = 'approved'
         submission.save()
@@ -88,6 +91,8 @@ class PendingPlaceAdmin(admin.ModelAdmin):
     @admin.action(description='Одобрить выбранные заявки')
     def approve_submission(self, request, queryset):
         for submission in queryset:
+            if submission.status == 'approved':
+                continue
             if submission.action == 'add':
                 new_place = Place.objects.create(
                     name=submission.name,

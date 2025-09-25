@@ -12,7 +12,7 @@
                 <h1 class="current-category-title">{{ current_category.name }}</h1>
                 <div class="category-dropdown-wrapper">
                     <select id="category-select" onchange="window.location.href = this.value;">
-                        <option value="#" disabled {% if not category.name %}selected{% endif %}>Изменить категорию</option>
+                        <option value="#" disabled {% if not category.name %}selected{% endif %}>Изменить</option>
                         {% for cat in all_categories %}
                             <option value="{% url 'category_detail' cat.slug %}" {% if cat.slug == category.slug %}selected{% endif %}>
                                 {{ cat.name }}
