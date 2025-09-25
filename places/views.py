@@ -56,7 +56,7 @@ class CategoryDetailView(DetailView):
         context.update({
             'places': places,
             'place_map': generate_place_map(self.request, places),
-            'all_categories': Category.objects.all(),
+            'all_categories': Category.objects.all().order_by('name'),
         })
         return context
 

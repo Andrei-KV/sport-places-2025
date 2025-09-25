@@ -660,7 +660,7 @@ footer {
         max-width: 120px;
     }
 
-    .map-container {
+    .map-container, .fixed-map {
         height: 200px;
 }
 }
