@@ -2,7 +2,7 @@ import logging
 from django.db import models
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import TemplateView, DetailView, CreateView,
+from django.views.generic import TemplateView, DetailView, CreateView
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
