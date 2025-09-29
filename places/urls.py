@@ -6,6 +6,7 @@ from .views import (
     PlaceEditView,
     RegisterView,
     CategoryDetailView,
+    TelegramAppView,
 )
 
 urlpatterns = [
@@ -15,7 +16,9 @@ urlpatterns = [
     path('edit/<int:place_id>/', PlaceEditView.as_view(), name='edit_place'),
     path('register/', RegisterView.as_view(), name='register'),
     path('category/<slug:category_slug>/', CategoryDetailView.as_view(), name='category_detail'),
+    path('telegram-app/', TelegramAppView.as_view(), name='telegram_app'),
 
+    # Восстановленные URL-адреса, чтобы не нарушать работу основного сайта
     path('', HomePageView.as_view(), name='about'),
     path('', HomePageView.as_view(), name='contacts'),
     path('', HomePageView.as_view(), name='categories'),

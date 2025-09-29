@@ -230,3 +230,10 @@ def edit_place(request, place_id):
 
 def register(request):
     return RegisterView.as_view()(request)
+
+
+class TelegramAppView(TemplateView):
+    """
+    View для отображения страницы Telegram Mini App.
+    """
+    template_name = 'places/telegram_app.html'
