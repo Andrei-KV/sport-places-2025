@@ -47,15 +47,25 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     'rest_framework',
+    'drf_yasg',
+    'drf_spectacular',
     'places',
     'storages',       # <— обязательно для работы с GCS
     'corsheaders',
 ]
 
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ]
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Sport Places API',
+    'DESCRIPTION': 'API for the Sport Places catalog project',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
 
 MIDDLEWARE = [

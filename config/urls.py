@@ -20,6 +20,8 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from places.views import CustomLoginView
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -27,6 +29,9 @@ urlpatterns = [
     path('accounts/login/', CustomLoginView.as_view(), name='login'),
     path("accounts/", include("django.contrib.auth.urls")),  # Для аут-ции
     path("api/v1/", include("places.api_urls")),
+    # API Schema and Documentation
+    path("api/v1/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path("api/v1/schema/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
 ]
 
 # Эта строка нужна только в режиме разработки
