@@ -491,7 +491,7 @@ footer {
 
 /* Map */
 .map-container {
-    height: 400px;
+    height: 100%;
     width: 100%;
     border: 1px solid #ccc;
     border-radius: 8px;
@@ -524,6 +524,7 @@ footer {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    flex-wrap: wrap; 
 }
 
 .current-category-title {
@@ -606,6 +607,17 @@ footer {
 
 
 @media (max-width: 768px) {
+
+    .category-header {
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start; 
+    }
+    
+    .current-category-title {
+        margin: 0;
+        width: 100%;
+    }
     .category-page-wrapper {
         flex-direction: column;
     }
@@ -618,7 +630,7 @@ footer {
     }
     .fixed-map {
         position: relative;
-        height: 300px;
+        height: 100%;
         top: 0;
     }
 }
@@ -660,7 +672,7 @@ footer {
         max-width: 120px;
     }
 
-    .map-container, .fixed-map {
+    .map-container{
         height: 200px;
 }
 }
@@ -680,7 +692,7 @@ footer {
     }
     .fixed-map {
         position: relative;
-        height: 300px;
+        height: 100%;
         top: 0;
     }
 }
@@ -693,6 +705,7 @@ footer {
     justify-content: space-between;
     align-items: center;
     gap: 20px;
+    flex-wrap: wrap;
 }
 
 .place-header h1 {
@@ -713,6 +726,34 @@ footer {
     font-family: 'Montserrat', sans-serif;
     font-size: 1em;
     color: #ecf0f1;
+}
+
+@media (max-width: 768px) {
+    /* ... Ваш существующий код медиа-запроса ... */
+    
+    /* Добавляем правила для place-header */
+    .place-header {
+        /* Принудительно меняем расположение элементов на вертикальное */
+        flex-direction: column; 
+        /* Выравниваем все элементы по левому краю */
+        align-items: flex-start;
+        /* Убираем "space-between" и используем стандартное gap */
+        justify-content: flex-start; 
+    }
+
+    .place-header h1 {
+        /* Заголовок должен занимать всю ширину, чтобы избежать проблем */
+        width: 100%; 
+        /* Добавляем отступ между заголовком и кнопкой */
+        margin-bottom: 15px; 
+    }
+    
+    .edit-btn {
+        /* Кнопка также занимает всю ширину */
+        width: auto; 
+        /* Центрируем содержимое (текст и иконку) внутри кнопки */
+        justify-content: center;
+    }
 }
 
 .edit-btn svg {

@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'places',
     'storages',       # <— обязательно для работы с GCS
+    'corsheaders',
 ]
 
 REST_FRAMEWORK = {
@@ -58,6 +59,7 @@ REST_FRAMEWORK = {
 }
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -152,6 +154,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Перенаправление на страницу после регистрации
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+CORS_ALLOWED_ORIGINS = [
+    "https://andrei-kv.github.io",  # ваш фронтенд
+]
 
 # Настройки для медиа-файлов (загружаемые пользователями)
 
