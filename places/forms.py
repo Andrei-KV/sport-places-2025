@@ -58,7 +58,7 @@ class PlaceForm(forms.ModelForm):
 
     class Meta:
         model = PendingPlace
-        fields = ['name', 'description', 'latitude', 'longitude']
+        fields = ['name', 'address', 'description', 'latitude', 'longitude']
 
 
 class CommentForm(forms.ModelForm):

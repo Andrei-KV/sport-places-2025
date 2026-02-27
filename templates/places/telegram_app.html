@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Каталог площадок</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+        }
+        #app {
+            max-width: 100%;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .category-list, .place-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .category-item, .place-item {
+            padding: 15px 10px;
+            border-bottom: 1px solid var(--tg-theme-secondary-bg-color, #f0f0f0);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .category-item:hover, .place-item:hover {
+            background-color: var(--tg-theme-secondary-bg-color, #f8f8f8);
+        }
+        .place-item h3 {
+            margin: 0 0 5px 0;
+            font-size: 18px;
+        }
+        .place-item p {
+            margin: 0;
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #888888);
+        }
+        .back-button {
+            display: none;
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border: none;
+            background-color: var(--tg-theme-button-color, #007bff);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <button id="back-to-categories" class="back-button">Назад к категориям</button>
+    <div id="app">
+        <h1>Категории</h1>
+        <ul id="categories" class="category-list"></ul>
+        <ul id="places" class="place-list" style="display: none;"></ul>
+    </div>
+    <div id="loading" style="display: none; text-align: center; padding: 20px;">Загрузка...</div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+
+        const apiBaseUrl = '/api/v1';
+        const app = document.getElementById('app');
+        const categoriesList = document.getElementById('categories');
+        const placesList = document.getElementById('places');
+        const backButton = document.getElementById('back-to-categories');
+        const loadingIndicator = document.getElementById('loading');
+        const title = document.querySelector('h1');
+
+        async function fetchCategories() {
+            showLoading(true);
+            try {
+                const response = await fetch(`${apiBaseUrl}/categories/`);
+                const categories = await response.json();
+                categoriesList.innerHTML = '';
+                categories.forEach(category => {
+                    const li = document.createElement('li');
+                    li.textContent = category.name;
+                    li.className = 'category-item';
+                    li.onclick = () => fetchPlaces(category.slug);
+                    categoriesList.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Ошибка при загрузке категорий:', error);
+                app.innerHTML = '<p>Не удалось загрузить категории. Попробуйте позже.</p>';
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function fetchPlaces(categorySlug) {
+            showLoading(true);
+            try {
+                const response = await fetch(`${apiBaseUrl}/categories/${categorySlug}/places/`);
+                const places = await response.json();
+                placesList.innerHTML = '';
+                places.forEach(place => {
+                    const li = document.createElement('li');
+                    li.className = 'place-item';
+                    li.innerHTML = `<h3>${place.name}</h3><p>${place.address}</p>`;
+                    // Можно добавить обработчик для показа деталей
+                    li.onclick = () => tg.showAlert(\`Адрес: ${place.address}\`);
+                    placesList.appendChild(li);
+                });
+                showPlacesView(categorySlug);
+            } catch (error) {
+                console.error('Ошибка при загрузке площадок:', error);
+                app.innerHTML = '<p>Не удалось загрузить площадки. Попробуйте позже.</p>';
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showCategoriesView() {
+            title.textContent = 'Категории';
+            categoriesList.style.display = 'block';
+            placesList.style.display = 'none';
+            backButton.style.display = 'none';
+        }
+
+        function showPlacesView(categoryName) {
+            title.textContent = `Площадки`;
+            categoriesList.style.display = 'none';
+            placesList.style.display = 'block';
+            backButton.style.display = 'block';
+        }
+
+        function showLoading(isLoading) {
+            loadingIndicator.style.display = isLoading ? 'block' : 'none';
+            app.style.display = isLoading ? 'none' : 'block';
+        }
+
+        backButton.onclick = showCategoriesView;
+
+        // Initial load
+        fetchCategories();
+    </script>
+</body>
+</html>

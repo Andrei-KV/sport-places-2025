@@ -22,6 +22,7 @@ class Category(models.Model):
 # Модель для одобренных площадок
 class Place(models.Model):
     name = models.CharField(max_length=200)
+    address = models.CharField(max_length=255, blank=True, default='')
     description = models.TextField()
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
@@ -56,6 +57,7 @@ class PendingPlace(models.Model):
 
     # Данные о площадке
     name = models.CharField(max_length=200)
+    address = models.CharField(max_length=255, blank=True, default='')
     description = models.TextField()
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
